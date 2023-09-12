@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>域名列表 - Cypher</title>
+    <script src="/static/js/header.js"></script>
+    <link href="https://fonts.googleapis.cn/css?family=Open+Sans:300,400,600,700" rel="stylesheet" />
+    <link href="https://cdn.imyrs.cn/static/web/argon2/css/fontwesome-pro-5.15.3.css" rel="stylesheet" />
+    <link href="/static/css/soft-ui-dashboard.min.css?v=1.0.7" rel="stylesheet" />
+</head>
+
+<body class="g-sidenav-show  bg-gray-100">
+    <main class="main-content position-relative max-height-vh-100 h-100 border-radius-lg">
+        <nav class="navbar navbar-main navbar-expand-lg px-0 mx-4 shadow-none border-radius-xl" id="navbarBlur"
+            navbar-scroll="true">
+            <div class="container-fluid py-1 px-3">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb bg-transparent mb-0 pb-0 pt-1 px-0 me-sm-6 me-5">
+                        <li class="breadcrumb-item text-sm">Cypher</li>
+                        <li class="breadcrumb-item text-sm text-dark active" aria-current="page">域名列表</li>
+                    </ol>
+                    <h6 class="font-weight-bolder mb-0">查看在 Cloudflare 接入的域名</h6>
+                </nav>
+            </div>
+        </nav>
+        <div class="container-fluid py-4">
+            <div class="row">
+                <div class="col-12 col-xl-10 mx-auto">
+                    <div class="card mb-4">
+                        <div class="card-header p-3 pb-0">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h6 class="mb-1">域名列表</h6>
+                                    <p class="text-sm">支持查看由 CNAME 接入的域名</p>
+                                </div>
+                                <div>
+                                    <button class="btn bg-gradient-danger icon-move-right" type="button" onclick="logout()">
+                                        登出
+                                        <i class="fas fa-sign-out ms-1"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-body p-3 pt-0">
+                            <div class="table-responsive p-0 mb-3">
+                                <table class="table align-items-center mb-0">
+                                    <thead>
+                                        <tr>
+                                            <th
+                                                class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-3">
+                                                Domain
+                                            </th>
+                                            <th
+                                                class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">
+                                                Plan
+                                            </th>
+                                            <th></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody></tbody>
+                                </table>
+                            </div>
+                            <div class="text-sm px-1">
+                                <span class="icon-move-left" id="prev-page" style="display: none;">
+                                    <a href="javascript:;" class="text-bold">
+                                        <i class="fas fa-arrow-left"></i>
+                                        上一页
+                                    </a>
+                                    |
+                                </span>
+                                第 <span id="current-page">...</span> 页 (总计 <span id="data-length">...</span> 条)
+                                <span class="icon-move-right" id="next-page" style="display: none;">
+                                    |
+                                    <a href="javascript:;" class="text-bold">
+                                        下一页
+                                        <i class="fas fa-arrow-right"></i>
+                                    </a>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <footer class="footer pt-3">
+                <div class="container-fluid">
+                    <div class="row align-items-center justify-content-lg-between">
+                        <div class="col-lg-6 mb-lg-0 mb-3">
+                            <div class="text-center text-sm text-muted text-lg-start">
+                                Made with <i class="fas fa-heart text-danger"></i> by
+                                <a href="https://imyrs.cn" class="font-weight-bold" target="_blank">ImYrS</a> for a
+                                better web.
+                            </div>
+                            <div class="text-sm text-center text-muted text-lg-start">
+                                ©
+                                <script>document.write(new Date().getFullYear().toString())</script>
+                                ImYrS, All Rights Reserved.
+                            </div>
+                        </div>
+                        <div class="col-lg-6">
+                            <ul class="nav nav-footer justify-content-center justify-content-lg-end">
+                                <li class="nav-item">
+                                    <a href="https://up.imyrs.cn" class="nav-link text-muted" target="_blank">
+                                        服务状态
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a href="https://beian.miit.gov.cn" class="nav-link text-muted" target="_blank">
+                                        粤 ICP 备 2021162740 号
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </footer>
+        </div>
+    </main>
+
+    <script src="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.2.3/js/bootstrap.min.js"></script>
+    <script src="https://cdn.bootcdn.net/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
+    <script src="https://cdn.bootcdn.net/ajax/libs/sweetalert2/11.7.3/sweetalert2.all.min.js"></script>
+    <script src="/static/js/soft-ui-dashboard.min.js?v=1.0.7"></script>
+
+    <script>
+        const endpoint = localStorage.endpoint;
+        const apiKey = localStorage.apiKey;
+        const params = new URLSearchParams(location.search);
+        const page = parseInt(params.get('page')) || 1;
+
+        const getZones = () => {
+            $.ajax({
+                url: `${endpoint}/client/v4/zones`,
+                method: 'get',
+                headers: { 'Authorization': `Bearer ${apiKey}` },
+                dataType: 'json',
+                data: {
+                    per_page: 30,
+                    page: page,
+                    status: 'active'
+                },
+                success: (resp) => {
+                    $('#current-page').text(`${page} / ${resp.result_info.total_pages}`);
+                    $('#data-length').text(resp.result_info.total_count);
+                    if (resp.result_info.total_pages > page) {
+                        $('#next-page').show();
+                        $('#next-page a').attr('href', `?page=${page + 1}`);
+                    }
+                    if (page > 1) {
+                        $('#prev-page').show();
+                        $('#prev-page a').attr('href', `?page=${page - 1}`);
+                    }
+
+                    let tb = '';
+                    resp.result.forEach(domain => {
+                        tb += `<tr><td><div class="d-flex px-2 py-1">`;
+                        tb += `<div class="d-flex flex-column justify-content-center">`;
+                        tb += `<h6 class="mb-0 mt-0">${domain.name}</h6>`;
+                        tb += `<p class="text-xxs text-secondary mb-0 text-monospace">${domain.id}</p>`;
+                        tb += `</div></div></td>`;
+                        tb += `<td><p class="text-sm font-weight-bold mb-0">${domain.plan.name}</p>`;
+                        tb += `<p class="text-xs text-secondary mb-0">Hosted by ${domain.host.name}</p></td>`;
+                        tb += `<td class="align-middle">`;
+                        tb += `<a href="/zone.html?id=${domain.id}" class="btn btn-sm bg-gradient-primary mb-0 px-3">`;
+                        tb += `<i class="fas fa-tools text-xxs me-2"></i>`;
+                        tb += `修改解析</a></td></tr>`;
+                    });
+                    $('tbody').html(tb);
+
+                },
+                error: (resp) => Swal.fire('加载失败', resp.responseJSON.errors[0].message, 'error'),
+                complete: () => { }
+            });
+        }
+
+        const logout = () => {
+            localStorage.removeItem('apiKey');
+            location.href = '/login.html';
+        }
+
+        getZones();
+    </script>
+</body>
+
+</html>

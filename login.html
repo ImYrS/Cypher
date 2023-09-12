@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no">
+    <title>登陆 - Cypher</title>
+    <script src="/static/js/header.js"></script>
+    <link href="https://fonts.googleapis.cn/css?family=Open+Sans:300,400,600,700" rel="stylesheet" />
+    <link href="https://cdn.imyrs.cn/static/web/argon2/css/fontwesome-pro-5.15.3.css" rel="stylesheet" />
+    <link href="/static/css/soft-ui-dashboard.min.css?v=1.0.7" rel="stylesheet" />
+</head>
+
+<body>
+    <main class="main-content  mt-0">
+        <div class="page-header min-vh-75">
+            <div class="container">
+                <div class="row">
+                    <div class="col-xl-4 col-lg-5 col-md-6 d-flex flex-column mx-auto">
+                        <div class="card card-plain mt-8">
+                            <div class="card-header pb-0 text-left bg-transparent">
+                                <h3 class="font-weight-bolder text-info text-gradient">欢迎使用 Cypher</h3>
+                                <p class="mb-0">一个简单且优雅的 Cloudflare DNS 面板</p>
+                            </div>
+                            <div class="card-body">
+                                <form>
+                                    <label>API Key</label>
+                                    <div class="mb-3" for="api-key">
+                                        <input type="password" class="form-control" placeholder="Cloudflare API Key"
+                                            id="api-key" autofocus autocomplete="off">
+                                    </div>
+                                    <label>API Endpoint</label>
+                                    <div class="mb-3">
+                                        <input type="text" class="form-control" placeholder="经过反代的 Cloudflare API"
+                                            id="api-endpoint">
+                                    </div>
+                                    <div class="text-center">
+                                        <button type="submit" class="btn bg-gradient-info w-100 mt-4 mb-0"
+                                            onclick="login()" id="btn">
+                                            登陆
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                            <div class="card-footer text-center pt-0 px-lg-2 px-1">
+                                <p class="mb-4 text-sm mx-auto">
+                                    尚未获得 API Key?
+                                    <a href="https://dash.cloudflare.com/profile/api-tokens" target="_blank"
+                                        class="text-info text-gradient font-weight-bold">
+                                        点此生成
+                                    </a>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="oblique position-absolute top-0 h-100 d-md-block d-none me-n8">
+                            <div class="oblique-image bg-cover position-absolute fixed-top ms-auto h-100 z-index-0 ms-n6"
+                                style="background-image:url('/static/img/curved-images/curved-6.jpg')"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer py-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 mx-auto text-center mb-4 mt-2">
+                    <a href="https://t.me/ImYrS" target="_blank" class="text-secondary me-xl-4 me-4">
+                        <span class="text-lg fab fa-telegram" aria-hidden="true"></span>
+                    </a>
+                    <a href="https://github.com/ImYrS" target="_blank" class="text-secondary me-xl-4 me-4">
+                        <span class="text-lg fab fa-github" aria-hidden="true"></span>
+                    </a>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-8 mx-auto text-center mt-1">
+                    <p class="mb-0 text-secondary">
+                        © 2023 ImYrS, All Rights Reserved.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.2.3/js/bootstrap.min.js"></script>
+    <script src="https://cdn.bootcdn.net/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
+    <script src="https://cdn.bootcdn.net/ajax/libs/sweetalert2/11.7.3/sweetalert2.all.min.js"></script>
+    <script src="/static/js/soft-ui-dashboard.min.js?v=1.0.7"></script>
+
+    <script>
+        const apiKey = $('#api-key');
+        const apiEndpoint = $('#api-endpoint');
+        const btn = $('#btn');
+
+        const init = () => {
+            let endpoint = localStorage.endpoint;
+            endpoint = endpoint || 'https://cf-proxy.workers.imyrs.net';
+            apiEndpoint.val(endpoint);
+        }
+
+        const checkField = (ele) => {
+            if (!ele.val()) {
+                ele.addClass('is-invalid');
+                ele.focus();
+                return false;
+            }
+
+            ele.removeClass('is-invalid').addClass('is-valid');
+            return true;
+        }
+
+        const login = () => {
+            if (event) event.preventDefault();
+            if (!checkField(apiKey) || !checkField(apiEndpoint)) return;
+
+            btn.attr('disabled', true).html('<span class="spinner-border spinner-border-sm"></span>');
+
+            $.ajax({
+                type: 'GET',
+                url: `${apiEndpoint.val()}/client/v4/user/tokens/verify`,
+                headers: {
+                    Authorization: `Bearer ${apiKey.val()}`
+                },
+                dataType: 'json',
+                success: (resp) => {
+                    localStorage.endpoint = apiEndpoint.val();
+                    localStorage.apiKey = apiKey.val();
+
+                    setTimeout(() => location.href = '/zones.html', 3000);
+                    Swal.fire('登陆成功', '正在跳转...', 'success').then(() => {
+                        location.href = '/zones.html';
+                    });
+                },
+                error: (resp) => Swal.fire('登陆失败', resp.responseJSON.errors[0].message, 'error'),
+                complete: () => btn.attr('disabled', false).html('登陆')
+            });
+        }
+
+        init();
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>解析记录 - Cypher</title>
+    <script src="/static/js/header.js"></script>
+    <link href="https://fonts.googleapis.cn/css?family=Open+Sans:300,400,600,700" rel="stylesheet" />
+    <link href="https://cdn.imyrs.cn/static/web/argon2/css/fontwesome-pro-5.15.3.css" rel="stylesheet" />
+    <link href="/static/css/soft-ui-dashboard.min.css?v=1.0.7" rel="stylesheet" />
+</head>
+
+<body class="g-sidenav-show bg-gray-100">
+    <main class="main-content position-relative max-height-vh-100 h-100 border-radius-lg">
+        <nav class="navbar navbar-main navbar-expand-lg px-0 mx-4 shadow-none border-radius-xl" id="navbarBlur"
+            navbar-scroll="true">
+            <div class="container-fluid py-1 px-3">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb bg-transparent mb-0 pb-0 pt-1 px-0 me-sm-6 me-5">
+                        <li class="breadcrumb-item text-sm">Cypher</li>
+                        <li class="breadcrumb-item text-sm"><a href="/zones.html" class="text-muted">域名列表</a></li>
+                        <li class="breadcrumb-item text-sm text-dark active" aria-current="page">解析记录</li>
+                    </ol>
+                    <h6 class="font-weight-bolder mb-0">编辑域名解析</h6>
+                </nav>
+            </div>
+        </nav>
+        <div class="container-fluid py-4">
+            <div class="row">
+                <div class="col-12 col-xl-2">
+                    <div class="card mb-3">
+                        <div class="card-body py-3">
+                            <div class="form-group">
+                                <label class="form-control-label">每页显示</label>
+                                <select class="form-control form-control-sm" id="page-size"
+                                    onchange="updateQuery('page_size', this.value)">
+                                    <option value="5">5 条</option>
+                                    <option value="10">10 条</option>
+                                    <option value="20">20 条</option>
+                                    <option value="50">50 条</option>
+                                    <option value="100">100 条</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-control-label">排序方式</label>
+                                <select class="form-control form-control-sm" id="order-by"
+                                    onchange="updateQuery('order_by', this.value)">
+                                    <option value="name">域名</option>
+                                    <option value="type">类型</option>
+                                    <option value="created_on">创建时间</option>
+                                    <option value="modified_on">修改时间</option>
+                                </select>
+                            </div>
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="direction" checked
+                                    onchange="updateQuery('direction', this.checked ? 'desc' : 'asc')">
+                                <label class="form-check-label" for="direction">降序</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 col-xl-10">
+                    <div class="card mb-4">
+                        <div class="card-header p-3 pb-0">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h5 class="mb-1 text-bolder" id="domain">...</h5>
+                                    <p class="text-sm text-monospace" id="zone-id"></p>
+                                </div>
+                                <div>
+                                    <button class="btn bg-gradient-primary" type="button" onclick="showCreateModal()">
+                                        <i class="fas fa-plus-circle me-1"></i>
+                                        添加
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-body p-3 pt-0">
+                            <div class="table-responsive p-0 mb-3">
+                                <table class="table align-items-center mb-0">
+                                    <thead>
+                                        <tr>
+                                            <th
+                                                class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-3">
+                                                Host
+                                            </th>
+                                            <th
+                                                class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">
+                                                Value
+                                            </th>
+                                            <th
+                                                class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">
+                                                Action
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody></tbody>
+                                </table>
+                            </div>
+                            <div class="text-sm px-1">
+                                <span class="icon-move-left" id="prev-page" style="display: none;">
+                                    <a class="text-bold" href="javascript:updateQuery('page', page - 1)">
+                                        <i class="fas fa-arrow-left"></i>
+                                        上一页
+                                    </a>
+                                    |
+                                </span>
+                                第 <span id="current-page">...</span> 页 (总计 <span id="data-length">...</span> 条)
+                                <span class="icon-move-right" id="next-page" style="display: none;">
+                                    |
+                                    <a class="text-bold" href="javascript:updateQuery('page', page + 1)">
+                                        下一页
+                                        <i class="fas fa-arrow-right"></i>
+                                    </a>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <footer class="footer pt-3">
+                <div class="container-fluid">
+                    <div class="row align-items-center justify-content-lg-between">
+                        <div class="col-lg-6 mb-lg-0 mb-3">
+                            <div class="text-center text-sm text-muted text-lg-start">
+                                Made with <i class="fas fa-heart text-danger"></i> by
+                                <a href="https://imyrs.cn" class="font-weight-bold" target="_blank">ImYrS</a> for a
+                                better web.
+                            </div>
+                            <div class="text-sm text-center text-muted text-lg-start">
+                                ©
+                                <script>document.write(new Date().getFullYear().toString())</script>
+                                ImYrS, All Rights Reserved.
+                            </div>
+                        </div>
+                        <div class="col-lg-6">
+                            <ul class="nav nav-footer justify-content-center justify-content-lg-end">
+                                <li class="nav-item">
+                                    <a href="https://up.imyrs.cn" class="nav-link text-muted" target="_blank">
+                                        服务状态
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a href="https://beian.miit.gov.cn" class="nav-link text-muted" target="_blank">
+                                        粤 ICP 备 2021162740 号
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </footer>
+        </div>
+    </main>
+
+    <div class="modal fade" id="edit-record" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-md">
+            <div class="modal-content">
+                <div class="modal-body p-0">
+                    <div class="card card-plain">
+                        <div class="card-header pb-0">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h4 class="font-weight-bolder text-primary text-gradient" id="edit-title">添加解析</h4>
+                                </div>
+                                <!-- <div class="mb-0">
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" id="edit-raw">
+                                        <label class="form-check-label text-gradient text-danger text-bolder"
+                                            for="edit-raw">
+                                            编辑原始 JSON
+                                        </label>
+                                    </div>
+                                </div> -->
+                            </div>
+                        </div>
+                        <div class="card-body pb-3">
+                            <form role="form">
+                                <div class="row mb-3">
+                                    <div class="col-12 col-md-3">
+                                        <div class="form-group">
+                                            <label class="form-control-label" for="edit-type">类型</label>
+                                            <div class="input-group">
+                                                <select class="form-control" id="edit-type" data-edit>
+                                                    <option>A</option>
+                                                    <option>AAAA</option>
+                                                    <option>CNAME</option>
+                                                    <option>TXT</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-12 col-md-9">
+                                        <div class="form-group">
+                                            <label class="form-control-label" for="edit-host">名称</label>
+                                            <div class="input-group">
+                                                <input type="text" class="form-control" id="edit-host"
+                                                    autocomplete="off" placeholder="@" data-edit>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row mb-3">
+                                    <div class="col-12 col-md-3">
+                                        <div class="form-group">
+                                            <label class="form-control-label" for="edit-ttl">TTL</label>
+                                            <div class="input-group">
+                                                <input type="number" class="form-control" id="edit-ttl"
+                                                    placeholder="300" value="300" data-edit>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-12 col-md-9">
+                                        <div class="form-group">
+                                            <label class="form-control-label" for="edit-content">值</label>
+                                            <div class="input-group">
+                                                <input type="text" class="form-control" id="edit-content"
+                                                    autocomplete="off" placeholder="1.1.1.1" data-edit>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="edit-proxied"
+                                        onchange="proxyFlagChanged()" data-edit>
+                                    <label class="form-check-label text-gradient text-warning text-bolder"
+                                        for="edit-proxied">
+                                        由 Cloudflare 代理流量 (CDN)
+                                    </label>
+                                </div>
+                                <div id="configs"></div>
+                                <div class="text-sm px-1" id="description"></div>
+                                <div class="text-center">
+                                    <button type="submit" class="btn bg-gradient-primary btn-rounded w-100 mt-4"
+                                        id="edit-btn" data-edit disabled>
+                                        提交
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.2.3/js/bootstrap.min.js"></script>
+    <script src="https://cdn.bootcdn.net/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
+    <script src="https://cdn.bootcdn.net/ajax/libs/sweetalert2/11.7.3/sweetalert2.all.min.js"></script>
+    <script src="/static/js/soft-ui-dashboard.min.js?v=1.0.7"></script>
+
+    <script>
+        const endpoint = localStorage.endpoint;
+        const apiKey = localStorage.apiKey;
+        let params, zoneId, page, pageSize, orderBy, direction;
+
+        const initQuery = () => {
+            params = new URLSearchParams(location.search);
+            zoneId = params.get('id');
+            page = parseInt(params.get('page')) || 1;
+            pageSize = parseInt(params.get('page_size')) || localStorage.getItem('page_size') || 10;
+            orderBy = params.get('order_by') || localStorage.getItem('order_by') || 'modified_on';
+            direction = params.get('direction') || localStorage.getItem('direction') || 'desc';
+
+            $('#zone-id').text(zoneId);
+            $('#page-size').val(pageSize);
+            $('#order-by').val(orderBy);
+            $('#direction').prop('checked', direction === 'desc');
+        };
+
+        const updateQuery = (key, value) => {
+            let query = new URLSearchParams(window.location.search);
+            query.set(key, value);
+            history.replaceState(null, null, `?${query.toString()}`);
+            localStorage.setItem(key, value);
+            reload();
+        };
+
+        const reload = () => {
+            $('tbody').html('');
+            initQuery();
+            getRecords();
+        };
+
+        const getRecords = () => {
+            $.ajax({
+                url: `${endpoint}/client/v4/zones/${zoneId}/dns_records`,
+                method: 'get',
+                headers: { 'Authorization': `Bearer ${apiKey}` },
+                dataType: 'json',
+                data: {
+                    per_page: pageSize,
+                    page: page,
+                    order: orderBy,
+                    direction: direction
+                },
+                success: (resp) => {
+                    $('#current-page').text(`${page} / ${resp.result_info.total_pages}`);
+                    $('#data-length').text(resp.result_info.total_count);
+                    if (resp.result_info.total_pages > page) $('#next-page').show();
+                    else $('#next-page').hide();
+                    if (page > 1) $('#prev-page').show();
+                    else $('#prev-page').hide();
+
+                    $('#domain').text(resp.result[0].zone_name);
+
+                    let tb = '';
+                    resp.result.forEach(domain => {
+                        let host = domain.name.replace(`${domain.zone_name}`, '');
+                        host = host ? host.slice(0, -1) : '@';
+                        let ttl = domain.ttl === 1 ? 'Auto' : `${domain.ttl}s`;
+                        let proxyIconClass = domain.proxied ? 'text-warning text-gradient' : 'text-secondary';
+
+                        tb += `<tr><td><div class="d-flex px-2 py-1">`;
+                        tb += `<div class="d-flex flex-column justify-content-center">`;
+                        tb += `<h6 class="mb-0 mt-0"><span class="text-bolder me-2">${domain.type}</span>`;
+                        tb += `${host}<span class="text-secondary me-2">.${domain.zone_name}</span>`;
+                        tb += `<span class="text-sm text-monospace text-primary text-gradient">[TTL ${ttl}]</span>`;
+                        tb += `<p class="text-xxs text-secondary mb-0 text-monospace">${new Date(domain.modified_on).toLocaleString()}</p>`;
+                        tb += `</div></div></td>`;
+                        tb += `<td><span class="text-sm text-bold mb-0 text-monospace">${domain.content}</span>`;
+                        tb += `<i class="text-sm fas fa-clouds ${proxyIconClass} ms-2" title="CDN ${domain.proxied ? '已开启' : '未开启'}"></i>`;
+                        tb += `</td><td class="text-center">`;
+                        tb += `<button class="btn btn-sm btn-dark mb-0 px-3 mx-1" onclick="showEditModal('${domain.id}')">`;
+                        tb += `<i class="fas fa-tools text-xxs me-1"></i>编辑</button>`;
+                        tb += `<button class="btn btn-sm btn-danger mb-0 px-3 mx-1" onclick="deleteRecord('${domain.id}', '${domain.type}', '${domain.name}')">`;
+                        tb += `<i class="fas fa-trash text-xxs me-1"></i>删除</button>`;
+                        tb += `</td></tr>`;
+                    });
+                    $('tbody').html(tb);
+
+                },
+                error: (resp) => Swal.fire('加载失败', resp.responseJSON.errors[0].message, 'error'),
+                complete: () => { }
+            });
+        };
+
+        const deleteRecord = (id, type, host) => {
+            Swal.fire({
+                customClass: {
+                    confirmButton: 'btn bg-gradient-danger', cancelButton: 'btn btn-secondary mx-2'
+                },
+                confirmButtonText: '确认删除',
+                cancelButtonText: '取消',
+                buttonsStyling: false,
+                title: '删除解析记录',
+                text: `即将删除位于 ${host} 的 ${type} 解析记录`,
+                icon: 'warning',
+                showCancelButton: true,
+                reverseButtons: true,
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        url: `${endpoint}/client/v4/zones/${zoneId}/dns_records/${id}`,
+                        method: 'delete',
+                        headers: { 'Authorization': `Bearer ${apiKey}` },
+                        dataType: 'json',
+                        success: (resp) => {
+                            reload();
+                            Swal.fire('删除成功', '解析记录已删除', 'success');
+                        },
+                        error: (resp) => Swal.fire('删除失败', resp.responseJSON.errors[0].message, 'error'),
+                        complete: () => { }
+                    });
+                }
+            });
+        };
+
+        const getRecord = (id) => {
+            $.ajax({
+                url: `${endpoint}/client/v4/zones/${zoneId}/dns_records/${id}`,
+                method: 'get',
+                headers: { 'Authorization': `Bearer ${apiKey}` },
+                dataType: 'json',
+                success: (resp) => {
+                    $('[data-edit]').attr('disabled', false);
+                    $('#edit-type').val(resp.result.type).attr('disabled', true);
+                    $('#edit-host').val(resp.result.name.replace(`${resp.result.zone_name}`, '').replace(/\.$/, '') || '@');
+                    $('#edit-content').val(resp.result.content);
+                    $('#edit-proxied').prop('checked', resp.result.proxied).attr('disabled', !resp.result.proxiable);
+                    proxyFlagChanged(resp.result.ttl);
+                },
+                error: (resp) => Swal.fire('加载失败', resp.responseJSON.errors[0].message, 'error'),
+                complete: () => { }
+            });
+        };
+
+        const proxyFlagChanged = (currentTTL = 0) => {
+            let ttl = $('#edit-ttl');
+            if ($('#edit-proxied').is(':checked')) ttl.attr('disabled', true).attr('data-ttl', ttl.val()).val(currentTTL || 1);
+            else ttl.attr('disabled', false).val(ttl.attr('data-ttl') || currentTTL || 60);
+        };
+
+        const showEditModal = (id) => {
+            $('#edit-title').text('编辑解析');
+            $('#edit-btn').attr('onclick', `editRecord('${id}')`);
+            $('[data-edit]').attr('disabled', true).val('').removeClass('is-invalid').removeClass('is-valid');
+            $('#edit-record').modal('show');
+            getRecord(id);
+        };
+
+        const showCreateModal = () => {
+            $('#edit-title').text('添加解析');
+            $('#edit-btn').attr('onclick', 'editRecord()');
+            $('[data-edit]').attr('disabled', false).val('').removeClass('is-invalid').removeClass('is-valid');
+            $('#edit-type').val('A');
+            $('#edit-proxied').prop('checked', false);
+            $('#edit-record').modal('show');
+            proxyFlagChanged();
+        };
+
+        const checkField = (ele) => {
+            if (!ele.val()) {
+                ele.addClass('is-invalid');
+                ele.focus();
+                return false;
+            }
+
+            ele.removeClass('is-invalid').addClass('is-valid');
+            return true;
+        }
+
+        const editRecord = (id = '') => {
+            if (event) event.preventDefault();
+
+            let type = $('#edit-type');
+            let host = $('#edit-host');
+            let ttl = $('#edit-ttl');
+            let content = $('#edit-content');
+            let proxied = $('#edit-proxied');
+
+            if (!host.val()) host.val('@');
+            if (!checkField(type) || !checkField(host) || !checkField(ttl) || !checkField(content)) return;
+
+            $('#edit-btn').attr('disabled', true).html('<span class="spinner-border spinner-border-sm"></span>');
+
+            let action = id ? '修改' : '添加';
+
+            $.ajax({
+                url: `${endpoint}/client/v4/zones/${zoneId}/dns_records${id ? '/' + id : ''}`,
+                method: id ? 'put' : 'post',
+                headers: { 'Authorization': `Bearer ${apiKey}` },
+                dataType: 'json',
+                data: JSON.stringify({
+                    type: type.val(),
+                    name: host.val(),
+                    ttl: ttl.val(),
+                    content: content.val(),
+                    proxied: proxied.is(':checked')
+                }),
+                success: (resp) => {
+                    $('#edit-record').modal('hide');
+                    reload();
+                    Swal.fire(`${action}成功`, `解析记录已${action}`, 'success');
+                },
+                error: (resp) => Swal.fire(`${action}失败`, resp.responseJSON.errors[0].message, 'error'),
+                complete: () => $('#edit-btn').attr('disabled', false).html('提交')
+            });
+        };
+
+
+        initQuery();
+        getRecords();
+    </script>
+</body>
+
+</html>
