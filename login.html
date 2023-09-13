@@ -8,43 +8,47 @@
     <title>登陆 - Cypher</title>
     <script src="/static/js/header.js"></script>
     <link href="https://fonts.googleapis.cn/css?family=Open+Sans:300,400,600,700" rel="stylesheet" />
-    <link href="https://cdn.imyrs.cn/static/web/argon2/css/fontwesome-pro-5.15.3.css" rel="stylesheet" />
+    <link href="/static/css/fontawesome-pro-6.4.2.min.css" rel="stylesheet" />
     <link href="/static/css/soft-ui-dashboard.min.css?v=1.0.7" rel="stylesheet" />
 </head>
 
 <body>
-    <main class="main-content  mt-0">
+    <main class="main-content mt-0">
         <div class="page-header min-vh-75">
             <div class="container">
                 <div class="row">
-                    <div class="col-xl-4 col-lg-5 col-md-6 d-flex flex-column mx-auto">
+                    <div class="col-xl-4 col-lg-5 col-md-6 mx-auto">
                         <div class="card card-plain mt-8">
                             <div class="card-header pb-0 text-left bg-transparent">
-                                <h3 class="font-weight-bolder text-info text-gradient">欢迎使用 Cypher</h3>
-                                <p class="mb-0">一个简单且优雅的 Cloudflare DNS 面板</p>
+                                <h2 class="font-weight-bolder text-primary text-gradient">欢迎使用 Cypher</h2>
+                                <p class="mb-0">一个简单优雅的 Cloudflare DNS 面板</p>
                             </div>
                             <div class="card-body">
                                 <form>
                                     <label>API Key</label>
-                                    <div class="mb-3" for="api-key">
+                                    <div for="api-key">
                                         <input type="password" class="form-control" placeholder="Cloudflare API Key"
                                             id="api-key" autofocus autocomplete="off">
                                     </div>
+                                    <div class="text-xs mt-1 mx-1 mb-2">
+                                        <i class="far fa-lock text-success me-1"></i>
+                                        仅保存在当前浏览器 LocalStorage 中.
+                                    </div>
                                     <label>API Endpoint</label>
-                                    <div class="mb-3">
+                                    <div>
                                         <input type="text" class="form-control" placeholder="经过反代的 Cloudflare API"
                                             id="api-endpoint">
                                     </div>
-                                    <div class="text-center">
-                                        <button type="submit" class="btn bg-gradient-info w-100 mt-4 mb-0"
-                                            onclick="login()" id="btn">
+                                    <div class="text-center mt-4">
+                                        <button type="submit" class="btn bg-gradient-primary w-100 mb-0" id="btn"
+                                            onclick="login()">
                                             登陆
                                         </button>
                                     </div>
                                 </form>
                             </div>
                             <div class="card-footer text-center pt-0 px-lg-2 px-1">
-                                <p class="mb-4 text-sm mx-auto">
+                                <p class="text-sm mx-auto">
                                     尚未获得 API Key?
                                     <a href="https://dash.cloudflare.com/profile/api-tokens" target="_blank"
                                         class="text-info text-gradient font-weight-bold">
@@ -68,20 +72,23 @@
     <footer class="footer py-5">
         <div class="container">
             <div class="row">
-                <div class="col-lg-8 mx-auto text-center mb-4 mt-2">
+                <div class="col-lg-8 mx-auto text-center mb-4 mt-2 fa-lg">
                     <a href="https://t.me/ImYrS" target="_blank" class="text-secondary me-xl-4 me-4">
-                        <span class="text-lg fab fa-telegram" aria-hidden="true"></span>
+                        <i class="fab fa-telegram" aria-hidden="true"></i>
                     </a>
-                    <a href="https://github.com/ImYrS" target="_blank" class="text-secondary me-xl-4 me-4">
-                        <span class="text-lg fab fa-github" aria-hidden="true"></span>
+                    <a href="https://github.com/ImYrS/cypher" target="_blank" class="text-secondary me-xl-4 me-4">
+                        <i class="fab fa-github" aria-hidden="true"></i>
+                    </a>
+                    <a href="mailto:iaas@duck.com" target="_blank" class="text-secondary me-xl-4 me-4">
+                        <i class="fas fa-at" aria-hidden="true"></i>
                     </a>
                 </div>
             </div>
             <div class="row">
                 <div class="col-8 mx-auto text-center mt-1">
-                    <p class="mb-0 text-secondary">
+                    <span class="mb-0 text-secondary">
                         © 2023 ImYrS, All Rights Reserved.
-                    </p>
+                    </span>
                 </div>
             </div>
         </div>
