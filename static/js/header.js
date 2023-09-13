@@ -1,10 +1,10 @@
 const initPath = () => {
   let path = location.pathname.replace('.html', '');
-  let apiKey = localStorage.apiKey;
+  let apiToken = localStorage.apiToken;
 
-  if (path === "/login" && apiKey) {
+  if (path === "/login" && apiToken) {
     location.href = "/zones.html";
-  } else if ((path === "/zones" || path === "/zone") && !apiKey) {
+  } else if ((path === "/zones" || path === "/zone") && !apiToken) {
     location.href = "/login.html";
   }
 };

@@ -10,7 +10,9 @@
     <link href="https://fonts.googleapis.cn/css?family=Open+Sans:300,400,600,700" rel="stylesheet" />
     <link href="/static/css/fontawesome-pro-6.4.2.min.css" rel="stylesheet" />
     <link href="/static/css/soft-ui-dashboard.min.css?v=1.0.7" rel="stylesheet" />
-    <script async defer src="https://cdn.imyrs.cn/static/umami.v2.min.js" data-website-id="daa90fea-70f0-42b4-b2ae-4964a5dd3b56" data-host-url="https://stats.imyrs.cn" data-domains="dns.imyrs.cn,dns.imyrs.com"></script>
+    <script async defer src="https://cdn.imyrs.cn/static/umami.v2.min.js"
+        data-website-id="daa90fea-70f0-42b4-b2ae-4964a5dd3b56" data-host-url="https://stats.imyrs.cn"
+        data-domains="dns.imyrs.cn,dns.imyrs.com"></script>
 </head>
 
 <body>
@@ -26,10 +28,11 @@
                             </div>
                             <div class="card-body">
                                 <form>
-                                    <label>API Key</label>
-                                    <div for="api-key">
-                                        <input type="password" class="form-control" placeholder="Cloudflare API Key"
-                                            id="api-key" autofocus autocomplete="off">
+                                    <label>API Token</label>
+                                    <div for="api-token">
+                                        <input type="password" class="form-control"
+                                            placeholder="一个包含 DNS:Write 权限的 API Token" id="api-token" autofocus
+                                            autocomplete="off">
                                     </div>
                                     <div class="text-xs mt-1 mx-1 mb-2">
                                         <i class="far fa-lock text-success me-1"></i>
@@ -41,19 +44,23 @@
                                             id="api-endpoint">
                                     </div>
                                     <div class="text-center mt-4">
-                                        <button type="submit" class="btn bg-gradient-primary w-100 mb-0" id="btn"
-                                            onclick="login()">
-                                            登陆
+                                        <button
+                                            class="btn bg-gradient-primary w-100 mb-0 position-relative icon-move-right"
+                                            onclick="login()" type="submit" id="btn">
+                                            <span class="position-absolute start-0 top-50 translate-middle-y ms-3">
+                                                <i class="fab fa-cloudflare text-lg"></i>
+                                            </span>
+                                            <span>登陆</span>
                                         </button>
                                     </div>
                                 </form>
                             </div>
                             <div class="card-footer text-center pt-0 px-lg-2 px-1">
                                 <p class="text-sm mx-auto">
-                                    尚未获得 API Key?
+                                    尚未获得 API Token?
                                     <a href="https://dash.cloudflare.com/profile/api-tokens" target="_blank"
                                         class="text-info text-gradient font-weight-bold">
-                                        点此生成
+                                        立即创建
                                     </a>
                                 </p>
                             </div>
@@ -74,14 +81,19 @@
         <div class="container">
             <div class="row">
                 <div class="col-lg-8 mx-auto text-center mb-4 mt-2 fa-lg">
-                    <a href="https://t.me/ImYrS" target="_blank" class="text-secondary me-xl-4 me-4">
+                    <a href="https://t.me/ImYrS" target="_blank" class="text-secondary me-xl-4 me-4 icon-move-right">
                         <i class="fab fa-telegram" aria-hidden="true"></i>
                     </a>
-                    <a href="https://github.com/ImYrS/cypher" target="_blank" class="text-secondary me-xl-4 me-4">
+                    <a href="https://github.com/ImYrS/cypher" target="_blank"
+                        class="text-secondary me-xl-4 me-4 icon-move-right">
                         <i class="fab fa-github" aria-hidden="true"></i>
                     </a>
-                    <a href="mailto:iaas@duck.com" target="_blank" class="text-secondary me-xl-4 me-4">
+                    <a href="mailto:iaas@duck.com" target="_blank" class="text-secondary me-xl-4 me-4 icon-move-right">
                         <i class="fas fa-at" aria-hidden="true"></i>
+                    </a>
+                    <a href="https://twitter.com/Cloudflare" target="_blank"
+                        class="text-secondary me-xl-4 me-4 icon-move-right">
+                        <i class="fab fa-x-twitter" aria-hidden="true"></i>
                     </a>
                 </div>
             </div>
@@ -101,7 +113,7 @@
     <script src="/static/js/soft-ui-dashboard.min.js?v=1.0.7"></script>
 
     <script>
-        const apiKey = $('#api-key');
+        const apiToken = $('#api-token');
         const apiEndpoint = $('#api-endpoint');
         const btn = $('#btn');
 
@@ -124,7 +136,7 @@
 
         const login = () => {
             if (event) event.preventDefault();
-            if (!checkField(apiKey) || !checkField(apiEndpoint)) return;
+            if (!checkField(apiToken) || !checkField(apiEndpoint)) return;
 
             btn.attr('disabled', true).html('<span class="spinner-border spinner-border-sm"></span>');
 
@@ -132,12 +144,12 @@
                 type: 'GET',
                 url: `${apiEndpoint.val()}/client/v4/user/tokens/verify`,
                 headers: {
-                    Authorization: `Bearer ${apiKey.val()}`
+                    Authorization: `Bearer ${apiToken.val()}`
                 },
                 dataType: 'json',
                 success: (resp) => {
                     localStorage.endpoint = apiEndpoint.val();
-                    localStorage.apiKey = apiKey.val();
+                    localStorage.apiToken = apiToken.val();
 
                     setTimeout(() => location.href = '/zones.html', 3000);
                     Swal.fire('登陆成功', '正在跳转...', 'success').then(() => {

@@ -35,6 +35,13 @@
                     <div class="card mb-3">
                         <div class="card-body py-3">
                             <div class="form-group">
+                                <label class="form-control-label">区域</label>
+                                <select class="form-control form-control-sm" id="page-zone"
+                                    onchange="updateQuery('id', this.value)" disabled>
+                                    <option>加载中...</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
                                 <label class="form-control-label">每页显示</label>
                                 <select class="form-control form-control-sm" id="page-size"
                                     onchange="updateQuery('page_size', this.value)">
@@ -129,7 +136,7 @@
                             <div class="text-center text-sm text-muted text-lg-start">
                                 Made with <i class="fas fa-heart text-danger"></i> by
                                 <a href="https://imyrs.cn" class="font-weight-bold" target="_blank">ImYrS</a>
-                                using <i class="fab fa-js"></i> for a better web.
+                                using <i class="fab fa-js" style="color: #F7DF1E;"></i> for a better web.
                             </div>
                             <div class="text-sm text-center text-muted text-lg-start">
                                 ©
@@ -278,7 +285,7 @@
 
     <script>
         const endpoint = localStorage.endpoint;
-        const apiKey = localStorage.apiKey;
+        const apiToken = localStorage.apiToken;
         let params, zoneId, page, pageSize, orderBy, direction;
 
         const clipboard = new ClipboardJS('[data-clipboard]');
@@ -337,7 +344,7 @@
             $.ajax({
                 url: `${endpoint}/client/v4/zones/${zoneId}/dns_records`,
                 method: 'get',
-                headers: { 'Authorization': `Bearer ${apiKey}` },
+                headers: { 'Authorization': `Bearer ${apiToken}` },
                 dataType: 'json',
                 data: {
                     per_page: pageSize,
@@ -405,7 +412,7 @@
                     $.ajax({
                         url: `${endpoint}/client/v4/zones/${zoneId}/dns_records/${id}`,
                         method: 'delete',
-                        headers: { 'Authorization': `Bearer ${apiKey}` },
+                        headers: { 'Authorization': `Bearer ${apiToken}` },
                         dataType: 'json',
                         success: (resp) => {
                             reload();
@@ -422,7 +429,7 @@
             $.ajax({
                 url: `${endpoint}/client/v4/zones/${zoneId}/dns_records/${id}`,
                 method: 'get',
-                headers: { 'Authorization': `Bearer ${apiKey}` },
+                headers: { 'Authorization': `Bearer ${apiToken}` },
                 dataType: 'json',
                 success: (resp) => {
                     $('[data-edit]').attr('disabled', false);
@@ -508,7 +515,7 @@
             $.ajax({
                 url: `${endpoint}/client/v4/zones/${zoneId}/dns_records${id ? '/' + id : ''}`,
                 method: id ? 'put' : 'post',
-                headers: { 'Authorization': `Bearer ${apiKey}` },
+                headers: { 'Authorization': `Bearer ${apiToken}` },
                 dataType: 'json',
                 data: data,
                 success: (resp) => {
@@ -532,7 +539,33 @@
             }
         };
 
+        const getZones = () => {
+            let zone = $('#page-zone');
+            zone.attr('disabled', true);
+
+            $.ajax({
+                url: `${endpoint}/client/v4/zones`,
+                method: 'get',
+                headers: { 'Authorization': `Bearer ${apiToken}` },
+                dataType: 'json',
+                data: {
+                    per_page: 100,
+                    status: 'active'
+                },
+                success: (resp) => {
+                    zone.html('');
+                    resp.result.forEach(item => {
+                        zone.append(`<option value="${item.id}">${item.name}</option>`);
+                    });
+                    zone.val(zoneId).attr('disabled', false);
+                },
+                error: (resp) => Swal.fire('加载失败', resp.responseJSON.errors[0].message, 'error'),
+                complete: () => { }
+            });
+        };
+
         initQuery();
+        getZones();
         getRecords();
     </script>
 </body>

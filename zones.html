@@ -9,7 +9,9 @@
     <link href="https://fonts.googleapis.cn/css?family=Open+Sans:300,400,600,700" rel="stylesheet" />
     <link href="/static/css/fontawesome-pro-6.4.2.min.css" rel="stylesheet" />
     <link href="/static/css/soft-ui-dashboard.min.css?v=1.0.7" rel="stylesheet" />
-    <script async defer src="https://cdn.imyrs.cn/static/umami.v2.min.js" data-website-id="daa90fea-70f0-42b4-b2ae-4964a5dd3b56" data-host-url="https://stats.imyrs.cn" data-domains="dns.imyrs.cn,dns.imyrs.com"></script>
+    <script async defer src="https://cdn.imyrs.cn/static/umami.v2.min.js"
+        data-website-id="daa90fea-70f0-42b4-b2ae-4964a5dd3b56" data-host-url="https://stats.imyrs.cn"
+        data-domains="dns.imyrs.cn,dns.imyrs.com"></script>
 </head>
 
 <body class="g-sidenav-show  bg-gray-100">
@@ -37,7 +39,8 @@
                                     <p class="text-sm">支持查看由 CNAME 接入的域名</p>
                                 </div>
                                 <div>
-                                    <button class="btn bg-gradient-danger icon-move-right" type="button" onclick="logout()">
+                                    <button class="btn bg-gradient-danger icon-move-right" type="button"
+                                        onclick="logout()">
                                         登出
                                         <i class="fas fa-sign-out ms-1"></i>
                                     </button>
@@ -91,7 +94,7 @@
                             <div class="text-center text-sm text-muted text-lg-start">
                                 Made with <i class="fas fa-heart text-danger"></i> by
                                 <a href="https://imyrs.cn" class="font-weight-bold" target="_blank">ImYrS</a>
-                                using <i class="fab fa-js"></i> for a better web.
+                                using <i class="fab fa-js" style="color: #F7DF1E;"></i> for a better web.
                             </div>
                             <div class="text-sm text-center text-muted text-lg-start">
                                 ©
@@ -128,7 +131,7 @@
 
     <script>
         const endpoint = localStorage.endpoint;
-        const apiKey = localStorage.apiKey;
+        const apiToken = localStorage.apiToken;
         const params = new URLSearchParams(location.search);
         const page = parseInt(params.get('page')) || 1;
 
@@ -136,7 +139,7 @@
             $.ajax({
                 url: `${endpoint}/client/v4/zones`,
                 method: 'get',
-                headers: { 'Authorization': `Bearer ${apiKey}` },
+                headers: { 'Authorization': `Bearer ${apiToken}` },
                 dataType: 'json',
                 data: {
                     per_page: 30,
@@ -166,7 +169,7 @@
                         tb += `<p class="text-xs text-secondary mb-0">Hosted by ${domain.host.name}</p></td>`;
                         tb += `<td class="align-middle">`;
                         tb += `<a href="/zone.html?id=${domain.id}" class="btn btn-sm bg-gradient-primary mb-0 px-3">`;
-                        tb += `<i class="fas fa-tools text-xxs me-2"></i>`;
+                        tb += `<i class="fas fa-bars-staggered text-xs me-2"></i>`;
                         tb += `修改解析</a></td></tr>`;
                     });
                     $('tbody').html(tb);
@@ -178,7 +181,7 @@
         }
 
         const logout = () => {
-            localStorage.removeItem('apiKey');
+            localStorage.removeItem('apiToken');
             location.href = '/login.html';
         }
 
