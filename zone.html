@@ -9,7 +9,9 @@
     <link href="https://fonts.googleapis.cn/css?family=Open+Sans:300,400,600,700" rel="stylesheet" />
     <link href="/static/css/fontawesome-pro-6.4.2.min.css" rel="stylesheet" />
     <link href="/static/css/soft-ui-dashboard.min.css?v=1.0.7" rel="stylesheet" />
-    <script async defer src="https://cdn.imyrs.cn/static/umami.v2.min.js" data-website-id="daa90fea-70f0-42b4-b2ae-4964a5dd3b56" data-host-url="https://stats.imyrs.cn" data-domains="dns.imyrs.cn,dns.imyrs.com"></script>
+    <script async defer src="https://cdn.imyrs.cn/static/umami.v2.min.js"
+        data-website-id="daa90fea-70f0-42b4-b2ae-4964a5dd3b56" data-host-url="https://stats.imyrs.cn"
+        data-domains="dns.imyrs.cn,dns.imyrs.com"></script>
 </head>
 
 <body class="g-sidenav-show bg-gray-100">
@@ -167,72 +169,92 @@
                                 <div>
                                     <h4 class="font-weight-bolder text-primary text-gradient" id="edit-title">添加解析</h4>
                                 </div>
-                                <!-- <div class="mb-0">
-                                    <div class="form-check form-switch">
-                                        <input class="form-check-input" type="checkbox" id="edit-raw">
+                                <div class="mb-0">
+                                    <div class="form-check">
+                                        <input class="form-check-input me-1" type="checkbox" id="edit-mode"
+                                            onchange="switchMode()" data-edit>
                                         <label class="form-check-label text-gradient text-danger text-bolder"
-                                            for="edit-raw">
-                                            编辑原始 JSON
+                                            for="edit-mode">
+                                            高级模式
                                         </label>
                                     </div>
-                                </div> -->
+                                </div>
                             </div>
                         </div>
                         <div class="card-body pb-3">
                             <form role="form">
-                                <div class="row mb-3">
-                                    <div class="col-12 col-md-3">
-                                        <div class="form-group">
-                                            <label class="form-control-label" for="edit-type">类型</label>
-                                            <div class="input-group">
-                                                <select class="form-control" id="edit-type" data-edit>
-                                                    <option>A</option>
-                                                    <option>AAAA</option>
-                                                    <option>CNAME</option>
-                                                    <option>TXT</option>
-                                                </select>
+                                <div id="edit-ui">
+                                    <div class="row mb-3">
+                                        <div class="col-12 col-md-3">
+                                            <div class="form-group">
+                                                <label class="form-control-label" for="edit-type">类型</label>
+                                                <div class="input-group">
+                                                    <select class="form-control" id="edit-type" data-edit>
+                                                        <option>A</option>
+                                                        <option>AAAA</option>
+                                                        <option>CNAME</option>
+                                                        <option>TXT</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-12 col-md-9">
+                                            <div class="form-group">
+                                                <label class="form-control-label" for="edit-host">名称</label>
+                                                <div class="input-group">
+                                                    <input type="text" class="form-control" id="edit-host"
+                                                        autocomplete="off" placeholder="@" data-edit>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="col-12 col-md-9">
-                                        <div class="form-group">
-                                            <label class="form-control-label" for="edit-host">名称</label>
-                                            <div class="input-group">
-                                                <input type="text" class="form-control" id="edit-host"
-                                                    autocomplete="off" placeholder="@" data-edit>
+                                    <div class="row mb-3">
+                                        <div class="col-12 col-md-3">
+                                            <div class="form-group">
+                                                <label class="form-control-label" for="edit-ttl">TTL</label>
+                                                <div class="input-group">
+                                                    <input type="number" class="form-control" id="edit-ttl"
+                                                        placeholder="300" value="300" data-edit>
+                                                </div>
                                             </div>
+                                        </div>
+                                        <div class="col-12 col-md-9">
+                                            <div class="form-group">
+                                                <label class="form-control-label" for="edit-content">值</label>
+                                                <div class="input-group">
+                                                    <input type="text" class="form-control" id="edit-content"
+                                                        autocomplete="off" placeholder="1.1.1.1" data-edit>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="form-check form-switch mb-3">
+                                        <input class="form-check-input" type="checkbox" id="edit-proxied"
+                                            onchange="proxyFlagChanged()" data-edit>
+                                        <label class="form-check-label text-gradient text-warning text-bolder"
+                                            for="edit-proxied">
+                                            <i class="fa-brands fa-cloudflare me-1 text-lg"></i>
+                                            由 Cloudflare 代理流量 (CDN)
+                                        </label>
+                                    </div>
+                                </div>
+                                <div id="edit-raw" style="display: none;">
+                                    <div class="form-group">
+                                        <label class="form-control-label" for="edit-json">请求 JSON</label>
+                                        <div class="input-group">
+                                            <textarea class="form-control text-monospace" id="edit-json" data-edit
+                                                rows="7"></textarea>
+                                        </div>
+                                        <div class="text-xs mt-1 mx-1">
+                                            请参照
+                                            <a href="https://developers.cloudflare.com/api/operations/dns-records-for-a-zone-create-dns-record"
+                                                target="_blank" class="text-under">
+                                                Cloudflare API 文档
+                                                <i class="fa-duotone fa-arrow-up-right-from-square ms-1"></i>
+                                            </a>
                                         </div>
                                     </div>
                                 </div>
-                                <div class="row mb-3">
-                                    <div class="col-12 col-md-3">
-                                        <div class="form-group">
-                                            <label class="form-control-label" for="edit-ttl">TTL</label>
-                                            <div class="input-group">
-                                                <input type="number" class="form-control" id="edit-ttl"
-                                                    placeholder="300" value="300" data-edit>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="col-12 col-md-9">
-                                        <div class="form-group">
-                                            <label class="form-control-label" for="edit-content">值</label>
-                                            <div class="input-group">
-                                                <input type="text" class="form-control" id="edit-content"
-                                                    autocomplete="off" placeholder="1.1.1.1" data-edit>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="form-check form-switch">
-                                    <input class="form-check-input" type="checkbox" id="edit-proxied"
-                                        onchange="proxyFlagChanged()" data-edit>
-                                    <label class="form-check-label text-gradient text-warning text-bolder"
-                                        for="edit-proxied">
-                                        由 Cloudflare 代理流量 (CDN)
-                                    </label>
-                                </div>
-                                <div id="configs"></div>
                                 <div class="text-sm px-1" id="description"></div>
                                 <div class="text-center">
                                     <button type="submit" class="btn bg-gradient-primary btn-rounded w-100 mt-4"
@@ -251,7 +273,6 @@
     <script src="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.2.3/js/bootstrap.min.js"></script>
     <script src="https://cdn.bootcdn.net/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
     <script src="https://cdn.bootcdn.net/ajax/libs/sweetalert2/11.7.3/sweetalert2.all.min.js"></script>
-    <script src="https://cdn.bootcdn.net/ajax/libs/popper.js/2.11.7/umd/popper.min.js"></script>
     <script src="https://cdn.bootcdn.net/ajax/libs/clipboard.js/2.0.11/clipboard.min.js"></script>
     <script src="/static/js/soft-ui-dashboard.min.js?v=1.0.7"></script>
 
@@ -271,6 +292,18 @@
             icon.removeClass('fa-copy').addClass('fa-circle-exclamation');
             setTimeout(() => icon.removeClass('fa-circle-exclamation').addClass('fa-copy'), 1000);
         });
+
+        $('[data-edit]').change(() => {
+            let data = {
+                type: $('#edit-type').val(),
+                name: $('#edit-host').val(),
+                ttl: $('#edit-ttl').val(),
+                content: $('#edit-content').val(),
+                proxied: $('#edit-proxied').is(':checked')
+            };
+
+            $('#edit-json').val(JSON.stringify(data, null, 2));
+        })
 
         const initQuery = () => {
             params = new URLSearchParams(location.search);
@@ -415,6 +448,8 @@
             $('#edit-btn').attr('onclick', `editRecord('${id}')`);
             $('[data-edit]').attr('disabled', true).val('').removeClass('is-invalid').removeClass('is-valid');
             $('#edit-record').modal('show');
+            $('#edit-mode').prop('checked', false);
+            switchMode();
             getRecord(id);
         };
 
@@ -425,6 +460,8 @@
             $('#edit-type').val('A');
             $('#edit-proxied').prop('checked', false);
             $('#edit-record').modal('show');
+            $('#edit-mode').prop('checked', false);
+            switchMode();
             proxyFlagChanged();
         };
 
@@ -442,14 +479,27 @@
         const editRecord = (id = '') => {
             if (event) event.preventDefault();
 
-            let type = $('#edit-type');
-            let host = $('#edit-host');
-            let ttl = $('#edit-ttl');
-            let content = $('#edit-content');
-            let proxied = $('#edit-proxied');
+            let rawMode = $('#edit-mode').is(':checked');
+            let data;
 
-            if (!host.val()) host.val('@');
-            if (!checkField(type) || !checkField(host) || !checkField(ttl) || !checkField(content)) return;
+            if (!rawMode) {
+                let type = $('#edit-type');
+                let host = $('#edit-host');
+                let ttl = $('#edit-ttl');
+                let content = $('#edit-content');
+                let proxied = $('#edit-proxied');
+
+                if (!host.val()) host.val('@');
+                if (!checkField(type) || !checkField(host) || !checkField(ttl) || !checkField(content)) return;
+
+                data = JSON.stringify({
+                    type: type.val(),
+                    name: host.val(),
+                    ttl: ttl.val(),
+                    content: content.val(),
+                    proxied: proxied.is(':checked')
+                });
+            } else data = $('#edit-json').val();
 
             $('#edit-btn').attr('disabled', true).html('<span class="spinner-border spinner-border-sm"></span>');
 
@@ -460,13 +510,7 @@
                 method: id ? 'put' : 'post',
                 headers: { 'Authorization': `Bearer ${apiKey}` },
                 dataType: 'json',
-                data: JSON.stringify({
-                    type: type.val(),
-                    name: host.val(),
-                    ttl: ttl.val(),
-                    content: content.val(),
-                    proxied: proxied.is(':checked')
-                }),
+                data: data,
                 success: (resp) => {
                     $('#edit-record').modal('hide');
                     reload();
@@ -475,6 +519,17 @@
                 error: (resp) => Swal.fire(`${action}失败`, resp.responseJSON.errors[0].message, 'error'),
                 complete: () => $('#edit-btn').attr('disabled', false).html('提交')
             });
+        };
+
+        const switchMode = () => {
+            let mode = $('#edit-mode');
+            if (mode.is(':checked')) {
+                $('#edit-ui').hide();
+                $('#edit-raw').show();
+            } else {
+                $('#edit-ui').show();
+                $('#edit-raw').hide();
+            }
         };
 
         initQuery();
