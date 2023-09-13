@@ -7,7 +7,8 @@
     <title>解析记录 - Cypher</title>
     <script src="/static/js/header.js"></script>
     <link href="https://fonts.googleapis.cn/css?family=Open+Sans:300,400,600,700" rel="stylesheet" />
-    <link href="https://cdn.imyrs.cn/static/web/argon2/css/fontwesome-pro-5.15.3.css" rel="stylesheet" />
+    <!-- <link href="https://cdn.imyrs.cn/static/web/argon2/css/fontwesome-pro-5.15.3.css" rel="stylesheet" /> -->
+    <link href="/static/css/fontawesome-pro-6.4.2.min.css" rel="stylesheet" />
     <link href="/static/css/soft-ui-dashboard.min.css?v=1.0.7" rel="stylesheet" />
 </head>
 
@@ -248,12 +249,26 @@
     <script src="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.2.3/js/bootstrap.min.js"></script>
     <script src="https://cdn.bootcdn.net/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
     <script src="https://cdn.bootcdn.net/ajax/libs/sweetalert2/11.7.3/sweetalert2.all.min.js"></script>
+    <script src="https://cdn.bootcdn.net/ajax/libs/popper.js/2.11.7/umd/popper.min.js"></script>
+    <script src="https://cdn.bootcdn.net/ajax/libs/clipboard.js/2.0.11/clipboard.min.js"></script>
     <script src="/static/js/soft-ui-dashboard.min.js?v=1.0.7"></script>
 
     <script>
         const endpoint = localStorage.endpoint;
         const apiKey = localStorage.apiKey;
         let params, zoneId, page, pageSize, orderBy, direction;
+
+        const clipboard = new ClipboardJS('[data-clipboard]');
+        clipboard.on('success', (e) => {
+            let icon = $(e.trigger).find('i');
+            icon.removeClass('fa-copy').addClass('fa-check');
+            setTimeout(() => icon.removeClass('fa-check').addClass('fa-copy'), 1000);
+        });
+        clipboard.on('error', (e) => {
+            let icon = $(e.trigger).find('i');
+            icon.removeClass('fa-copy').addClass('fa-circle-exclamation');
+            setTimeout(() => icon.removeClass('fa-circle-exclamation').addClass('fa-copy'), 1000);
+        });
 
         const initQuery = () => {
             params = new URLSearchParams(location.search);
@@ -310,22 +325,23 @@
                         let host = domain.name.replace(`${domain.zone_name}`, '');
                         host = host ? host.slice(0, -1) : '@';
                         let ttl = domain.ttl === 1 ? 'Auto' : `${domain.ttl}s`;
-                        let proxyIconClass = domain.proxied ? 'text-warning text-gradient' : 'text-secondary';
+                        let proxyIconClass = domain.proxied ? 'text-gradient text-warning' : 'text-secondary';
+                        let proxyBtn = domain.proxied ? `<button class="btn btn-sm bg-gradient-info mb-0 px-3 mx-1" data-clipboard data-clipboard-text="${domain.name}.cdn.cloudflare.net"><i class="fas fa-copy text-xxs me-2"></i>CNAME</button>` : '';
 
-                        tb += `<tr><td><div class="d-flex px-2 py-1">`;
+                        tb += `<tr><td><div class="d-flex px-2">`;
                         tb += `<div class="d-flex flex-column justify-content-center">`;
                         tb += `<h6 class="mb-0 mt-0"><span class="text-bolder me-2">${domain.type}</span>`;
                         tb += `${host}<span class="text-secondary me-2">.${domain.zone_name}</span>`;
                         tb += `<span class="text-sm text-monospace text-primary text-gradient">[TTL ${ttl}]</span>`;
                         tb += `<p class="text-xxs text-secondary mb-0 text-monospace">${new Date(domain.modified_on).toLocaleString()}</p>`;
                         tb += `</div></div></td>`;
-                        tb += `<td><span class="text-sm text-bold mb-0 text-monospace">${domain.content}</span>`;
-                        tb += `<i class="text-sm fas fa-clouds ${proxyIconClass} ms-2" title="CDN ${domain.proxied ? '已开启' : '未开启'}"></i>`;
-                        tb += `</td><td class="text-center">`;
+                        tb += `<td><div class="d-flex"><div class="d-flex pt-2"><span class="text-sm text-bold mb-0 text-monospace">${domain.content}</span></div>`;
+                        tb += `<div><i class="fa-brands fa-cloudflare fa-2x ms-2 ${proxyIconClass}" title="CDN ${domain.proxied ? '已开启' : '未开启'}"></i></div>`;
+                        tb += `</td><td class="text-center">${proxyBtn}`;
                         tb += `<button class="btn btn-sm btn-dark mb-0 px-3 mx-1" onclick="showEditModal('${domain.id}')">`;
-                        tb += `<i class="fas fa-tools text-xxs me-1"></i>编辑</button>`;
+                        tb += `<i class="fas fa-pen text-xxs me-2"></i>编辑</button>`;
                         tb += `<button class="btn btn-sm btn-danger mb-0 px-3 mx-1" onclick="deleteRecord('${domain.id}', '${domain.type}', '${domain.name}')">`;
-                        tb += `<i class="fas fa-trash text-xxs me-1"></i>删除</button>`;
+                        tb += `<i class="fas fa-trash text-xxs me-2"></i>删除</button>`;
                         tb += `</td></tr>`;
                     });
                     $('tbody').html(tb);
@@ -458,7 +474,6 @@
                 complete: () => $('#edit-btn').attr('disabled', false).html('提交')
             });
         };
-
 
         initQuery();
         getRecords();
