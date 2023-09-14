@@ -157,7 +157,11 @@
                     });
                 },
                 error: (resp) => Swal.fire('登陆失败', resp.responseJSON.errors[0].message, 'error'),
-                complete: () => btn.attr('disabled', false).html('登陆')
+                complete: () => {
+                    btn
+                        .attr('disabled', false)
+                        .html('<span class="position-absolute start-0 top-50 translate-middle-y ms-3"><i class="fab fa-cloudflare text-lg"></i></span><span>登陆</span>');
+                }
             });
         }
 

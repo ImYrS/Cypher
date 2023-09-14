@@ -160,17 +160,17 @@
 
                     let tb = '';
                     resp.result.forEach(domain => {
+                        let hostedBy = domain.type == 'full' ? 'Cloudflare (NS)' : `${domain.host.name} (CNAME)`;
                         tb += `<tr><td><div class="d-flex px-2 py-1">`;
                         tb += `<div class="d-flex flex-column justify-content-center">`;
                         tb += `<h6 class="mb-0 mt-0">${domain.name}</h6>`;
                         tb += `<p class="text-xxs text-secondary mb-0 text-monospace">${domain.id}</p>`;
                         tb += `</div></div></td>`;
                         tb += `<td><p class="text-sm font-weight-bold mb-0">${domain.plan.name}</p>`;
-                        tb += `<p class="text-xs text-secondary mb-0">Hosted by ${domain.host.name}</p></td>`;
+                        tb += `<p class="text-xs text-secondary mb-0">Hosted by ${hostedBy}</p></td>`;
                         tb += `<td class="align-middle">`;
                         tb += `<a href="/zone.html?id=${domain.id}" class="btn btn-sm bg-gradient-primary mb-0 px-3">`;
-                        tb += `<i class="fas fa-bars-staggered text-xs me-2"></i>`;
-                        tb += `修改解析</a></td></tr>`;
+                        tb += `<i class="fas fa-bars-staggered text-xs me-2"></i>修改解析</a></td></tr>`;
                     });
                     $('tbody').html(tb);
 
