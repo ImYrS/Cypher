@@ -32,7 +32,7 @@
         <div class="container-fluid py-4">
             <div class="row">
                 <div class="col-12 col-xl-2">
-                    <div class="card mb-3">
+                    <div class="card mb-3 position-sticky" style="top: 10%;">
                         <div class="card-body py-3">
                             <div class="form-group">
                                 <label class="form-control-label">区域</label>
@@ -367,8 +367,6 @@
                     if (page > 1) $('#prev-page').show();
                     else $('#prev-page').hide();
 
-                    $('#domain').text(resp.result[0].zone_name);
-
                     let tb = '';
                     resp.result.forEach(domain => {
                         let host = domain.name.replace(`${domain.zone_name}`, '');
@@ -563,6 +561,7 @@
                     zone.html('');
                     resp.result.forEach(item => {
                         zone.append(`<option value="${item.id}">${item.name}</option>`);
+                        if (item.id === zoneId) $('#domain').text(item.name);
                     });
                     zone.val(zoneId).attr('disabled', false);
                 },
