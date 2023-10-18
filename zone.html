@@ -75,7 +75,11 @@
                         <div class="card-header p-3 pb-0">
                             <div class="d-flex justify-content-between">
                                 <div>
-                                    <h5 class="mb-1 text-bolder" id="domain">...</h5>
+                                    <h5 class="mb-1 text-bolder">
+                                        <span id="domain" class="me-2">...</span>
+                                        <span class="text-sm text-muted opacity-7">共 <span id="data-length">...</span>
+                                            条记录</span>
+                                    </h5>
                                     <p class="text-sm text-monospace" id="zone-id"></p>
                                 </div>
                                 <div>
@@ -87,7 +91,7 @@
                             </div>
                         </div>
                         <div class="card-body p-3 pt-0">
-                            <div class="table-responsive p-0 mb-3">
+                            <div class="table-responsive p-0 mb-0">
                                 <table class="table align-items-center mb-0">
                                     <thead>
                                         <tr>
@@ -108,22 +112,11 @@
                                     <tbody></tbody>
                                 </table>
                             </div>
-                            <div class="text-sm px-1">
-                                <span class="icon-move-left" id="prev-page" style="display: none;">
-                                    <a class="text-bold" href="javascript:updateQuery('page', page - 1)">
-                                        <i class="fas fa-arrow-left"></i>
-                                        上一页
-                                    </a>
-                                    |
-                                </span>
-                                第 <span id="current-page">...</span> 页 (总计 <span id="data-length">...</span> 条)
-                                <span class="icon-move-right" id="next-page" style="display: none;">
-                                    |
-                                    <a class="text-bold" href="javascript:updateQuery('page', page + 1)">
-                                        下一页
-                                        <i class="fas fa-arrow-right"></i>
-                                    </a>
-                                </span>
+                            <div>
+                                <nav>
+                                    <ul class="pagination pagination-sm pagination-primary justify-content-end my-0"
+                                        id="page-links"></ul>
+                                </nav>
                             </div>
                         </div>
                     </div>
@@ -331,6 +324,8 @@
             $('#page-size').val(pageSize);
             $('#order-by').val(orderBy);
             $('#direction').prop('checked', direction === 'desc');
+
+            if (!zoneId) location.href = '/zones.html';
         };
 
         const updateQuery = (key, value) => {
@@ -347,6 +342,27 @@
             getRecords();
         };
 
+        const loadPagination = (currentPage, totalPages) => {
+            let links = '';
+            for (let i = 1; i <= totalPages; i++) {
+                if (i === currentPage) links += `<li class="page-item active"><a class="page-link" href="javascript:updateQuery('page', ${i});">${i}</a></li>`;
+                else links += `<li class="page-item"><a class="page-link" href="javascript:updateQuery('page', ${i});">${i}</a></li>`;
+            }
+
+            if (currentPage > 1) {
+                links = `<li class="page-item"><a class="page-link" href="javascript:updateQuery('page', ${currentPage - 1});"><i class="fa-solid fa-angle-left"></i></a></li>` + links;
+            }
+
+            if (currentPage < totalPages) {
+                links += `<li class="page-item"><a class="page-link" href="javascript:updateQuery('page', ${currentPage + 1});"><i class="fa-solid fa-angle-right"></i></a></li>`;
+            }
+
+            $('#page-links').html(links);
+
+            if (totalPages > 1) $('#page-links').show();
+            else $('#page-links').hide();
+        };
+
         const getRecords = () => {
             $.ajax({
                 url: `${endpoint}/client/v4/zones/${zoneId}/dns_records`,
@@ -360,12 +376,8 @@
                     direction: direction
                 },
                 success: (resp) => {
-                    $('#current-page').text(`${page} / ${resp.result_info.total_pages}`);
+                    loadPagination(page, resp.result_info.total_pages);
                     $('#data-length').text(resp.result_info.total_count);
-                    if (resp.result_info.total_pages > page) $('#next-page').show();
-                    else $('#next-page').hide();
-                    if (page > 1) $('#prev-page').show();
-                    else $('#prev-page').hide();
 
                     let tb = '';
                     resp.result.forEach(domain => {
