@@ -37,7 +37,7 @@
                             <div class="form-group">
                                 <label class="form-control-label">区域</label>
                                 <select class="form-control form-control-sm" id="page-zone"
-                                    onchange="updateQuery('id', this.value)" disabled>
+                                    onchange="switchZone(this.value)" disabled>
                                     <option>加载中...</option>
                                 </select>
                             </div>
@@ -286,6 +286,7 @@
     <script>
         const endpoint = localStorage.endpoint;
         const apiToken = localStorage.apiToken;
+        const accountId = localStorage.accountId;
         let params, zoneId, page, pageSize, orderBy, direction;
 
         const clipboard = new ClipboardJS('[data-clipboard]');
@@ -336,6 +337,14 @@
             reload();
         };
 
+        const switchZone = (zoneInfo) => {
+            zoneInfo = zoneInfo.split('|');
+            let zoneId = zoneInfo[0];
+            let zoneName = zoneInfo[1];
+            $('#domain').text(zoneName);
+            updateQuery('id', zoneId);
+        };
+
         const reload = () => {
             $('tbody').html('');
             initQuery();
@@ -363,6 +372,27 @@
             else $('#page-links').hide();
         };
 
+        class Record {
+            constructor(record) {
+                this.id = record.id;
+                this.type = record.type;
+                this.name = record.name;
+                this.content = record.content;
+                this.proxied = record.proxied;
+                this.ttl = record.ttl === 1 ? 'Auto' : `${record.ttl}s`;
+                this.modified_on = record.modified_on;
+                this.zone_name = record.zone_name;
+                this.meta = record.meta;
+
+                // 额外处理
+                this.host = (this.name.replace(this.zone_name, '').replace(/\.$/, '') || '@');
+                this.isWorker = this.meta.origin_worker_id ? true : false;
+                this.editable = true;
+
+                if (this.isWorker) this.editable = false;
+            };
+        };
+
         const getRecords = () => {
             $.ajax({
                 url: `${endpoint}/client/v4/zones/${zoneId}/dns_records`,
@@ -379,32 +409,35 @@
                     loadPagination(page, resp.result_info.total_pages);
                     $('#data-length').text(resp.result_info.total_count);
 
-                    let tb = '';
-                    resp.result.forEach(domain => {
-                        let host = domain.name.replace(`${domain.zone_name}`, '');
-                        host = host ? host.slice(0, -1) : '@';
-                        let ttl = domain.ttl === 1 ? 'Auto' : `${domain.ttl}s`;
-                        let proxyIconClass = domain.proxied ? 'text-gradient text-warning' : 'text-secondary';
-                        let proxyBtn = domain.proxied ? `<button class="btn btn-sm bg-gradient-info mb-0 px-3 mx-1" data-clipboard data-clipboard-text="${domain.name}.cdn.cloudflare.net"><i class="fas fa-copy text-xxs me-2"></i>CNAME</button>` : '';
+                    let tb = $('tbody');
+                    resp.result.forEach((recordRaw) => {
+                        let record = new Record(recordRaw);
 
-                        tb += `<tr><td><div class="d-flex px-2">`;
-                        tb += `<div class="d-flex flex-column justify-content-center">`;
-                        tb += `<h6 class="mb-0 mt-0"><span class="text-bolder me-2">${domain.type}</span>`;
-                        tb += `${host}<span class="text-secondary me-2">.${domain.zone_name}</span>`;
-                        tb += `<span class="text-sm text-monospace text-primary text-gradient">[TTL ${ttl}]</span>`;
-                        tb += `<p class="text-xxs text-secondary mb-0 text-monospace">${new Date(domain.modified_on).toLocaleString()}</p>`;
-                        tb += `</div></div></td>`;
-                        tb += `<td><div class="d-flex"><div class="d-flex pt-2"><span class="text-sm text-bold mb-0 text-monospace">${domain.content}</span></div>`;
-                        tb += `<div><i class="fa-brands fa-cloudflare fa-2x ms-2 ${proxyIconClass}" title="CDN ${domain.proxied ? '已开启' : '未开启'}"></i></div>`;
-                        tb += `</td><td class="text-center">${proxyBtn}`;
-                        tb += `<button class="btn btn-sm btn-dark mb-0 px-3 mx-1" onclick="showEditModal('${domain.id}')">`;
-                        tb += `<i class="fas fa-pen text-xxs me-2"></i>编辑</button>`;
-                        tb += `<button class="btn btn-sm btn-danger mb-0 px-3 mx-1" onclick="deleteRecord('${domain.id}', '${domain.type}', '${domain.name}')">`;
-                        tb += `<i class="fas fa-trash text-xxs me-2"></i>删除</button>`;
-                        tb += `</td></tr>`;
+                        let type = record.isWorker ? 'Worker' : record.type;
+                        let typeClass = record.isWorker ? 'text-gradient text-success' : '';
+                        let proxyIconClass = record.proxied ? 'text-gradient text-warning' : 'text-secondary';
+                        let proxyBtn = record.proxied ? `<button class="btn btn-sm bg-gradient-info mb-0 px-3 mx-1" data-clipboard data-clipboard-text="${record.name}.cdn.cloudflare.net"><i class="fas fa-copy text-xxs me-2"></i>CNAME</button>` : '';
+
+                        let tr = '';
+                        tr += `<tr><td><div class="d-flex px-2">`;
+                        tr += `<div class="d-flex flex-column justify-content-center">`;
+                        tr += `<h6 class="mb-0 mt-0"><span class="text-bolder me-2 ${typeClass}">${type}</span>`;
+                        tr += `${record.host}<span class="text-secondary me-2">.${record.zone_name}</span>`;
+                        tr += `<span class="text-sm text-monospace text-primary text-gradient">[TTL ${record.ttl}]</span>`;
+                        tr += `<p class="text-xxs text-secondary mb-0 text-monospace">${new Date(record.modified_on).toLocaleString()}</p>`;
+                        tr += `</div></div></td>`;
+                        tr += `<td><div class="d-flex"><div class="d-flex pt-2"><span class="text-sm text-bold mb-0 text-monospace" id="content-${record.id}">${record.content}</span></div>`;
+                        tr += `<div><i class="fa-brands fa-cloudflare fa-2x ms-2 ${proxyIconClass}" title="CDN ${record.proxied ? '已开启' : '未开启'}"></i></div>`;
+                        tr += `</td><td class="text-center">${proxyBtn}`;
+                        tr += `<button class="btn btn-sm btn-dark mb-0 px-3 mx-1" onclick="showEditModal('${record.id}')" style="${record.editable ? '' : 'display: none;'}">`;
+                        tr += `<i class="fas fa-pen text-xxs me-2"></i>编辑</button>`;
+                        tr += `<button class="btn btn-sm btn-danger mb-0 px-3 mx-1" onclick="deleteRecord('${record.id}', '${type}', '${record.name}')" style="${record.editable ? '' : 'display: none;'}">`;
+                        tr += `<i class="fas fa-trash text-xxs me-2"></i>删除</button>`;
+                        tr += `</td></tr>`;
+                        tb.append(tr);
+
+                        if (record.isWorker) getWorker(record);
                     });
-                    $('tbody').html(tb);
-
                 },
                 error: (resp) => Swal.fire('加载失败', resp.responseJSON.errors[0].message, 'error'),
                 complete: () => { }
@@ -449,8 +482,10 @@
                 headers: { 'Authorization': `Bearer ${apiToken}` },
                 dataType: 'json',
                 success: (resp) => {
+                    let record = new Record(resp.result);
+
                     $('[data-edit]').attr('disabled', false);
-                    $('#edit-type').val(resp.result.type).attr('disabled', true);
+                    $('#edit-type').val(record.type).attr('disabled', true);
                     $('#edit-host').val(resp.result.name.replace(`${resp.result.zone_name}`, '').replace(/\.$/, '') || '@');
                     $('#edit-content').val(resp.result.content);
                     $('#edit-proxied').prop('checked', resp.result.proxied).attr('disabled', !resp.result.proxiable);
@@ -572,13 +607,30 @@
                 success: (resp) => {
                     zone.html('');
                     resp.result.forEach(item => {
-                        zone.append(`<option value="${item.id}">${item.name}</option>`);
-                        if (item.id === zoneId) $('#domain').text(item.name);
+                        zone.append(`<option value="${item.id}|${item.name}">${item.name}</option>`);
+                        if (item.id === zoneId) {
+                            $('#domain').text(item.name);
+                            zone.val(`${item.id}|${item.name}`).attr('disabled', false);
+                        }
                     });
-                    zone.val(zoneId).attr('disabled', false);
                 },
                 error: (resp) => Swal.fire('加载失败', resp.responseJSON.errors[0].message, 'error'),
                 complete: () => { }
+            });
+        };
+
+        const getWorker = (record) => {
+            $.ajax({
+                url: `${endpoint}/client/v4/accounts/${accountId}/workers/domains`,
+                method: 'get',
+                headers: { 'Authorization': `Bearer ${apiToken}` },
+                data: { hostname: record.name },
+                dataType: 'json',
+                success: (resp) => {
+                    let worker = resp.result[0];
+                    $(`#content-${record.id}`).text(`${worker.service}`).addClass('text-gradient text-success fst-italic');
+                },
+                error: (resp) => $(`#content-${record.id}`).text('获取 Worker 信息失败')
             });
         };
 

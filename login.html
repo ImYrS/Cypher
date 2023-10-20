@@ -30,9 +30,9 @@
                                 <form>
                                     <label>API Token</label>
                                     <div for="api-token">
-                                        <input type="password" class="form-control"
-                                            placeholder="一个包含 DNS:Write 权限的 API Token" id="api-token" autofocus
-                                            autocomplete="off">
+                                        <input type="password" class="form-control" id="api-token" autofocus
+                                            autocomplete="off"
+                                            placeholder="包含 DNS:Write 和 WorkersScripts:Read 权限的 API Token">
                                     </div>
                                     <div class="text-xs mt-1 mx-1 mb-2">
                                         <i class="far fa-lock text-success me-1"></i>
@@ -151,6 +151,26 @@
                     localStorage.endpoint = apiEndpoint.val();
                     localStorage.apiToken = apiToken.val();
 
+                    getAccountId();
+                },
+                error: (resp) => {
+                    Swal.fire('登陆失败', resp.responseJSON.errors[0].message, 'error');
+                    btn.attr('disabled', false).html('<span class="position-absolute start-0 top-50 translate-middle-y ms-3"><i class="fab fa-cloudflare text-lg"></i></span><span>登陆</span>');
+                }
+            });
+        };
+
+        const getAccountId = () => {
+            $.ajax({
+                type: 'GET',
+                url: `${localStorage.endpoint}/client/v4/accounts`,
+                headers: {
+                    Authorization: `Bearer ${localStorage.apiToken}`
+                },
+                dataType: 'json',
+                success: (resp) => {
+                    localStorage.accountId = resp.result[0].id;
+
                     setTimeout(() => location.href = '/zones.html', 3000);
                     Swal.fire('登陆成功', '正在跳转...', 'success').then(() => {
                         location.href = '/zones.html';
@@ -158,13 +178,10 @@
                 },
                 error: (resp) => Swal.fire('登陆失败', resp.responseJSON.errors[0].message, 'error'),
                 complete: () => {
-                    btn
-                        .attr('disabled', false)
-                        .html('<span class="position-absolute start-0 top-50 translate-middle-y ms-3"><i class="fab fa-cloudflare text-lg"></i></span><span>登陆</span>');
+                    btn.attr('disabled', false).html('<span class="position-absolute start-0 top-50 translate-middle-y ms-3"><i class="fab fa-cloudflare text-lg"></i></span><span>登陆</span>');
                 }
             });
-        }
-
+        };
         init();
     </script>
 </body>
