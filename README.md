@@ -3,5 +3,5 @@ A Cloudflare DNS panel for domains hosted via CNAME on Cloudflare.
 
 ## Todo
 - [x] CNAME value copy button
-- [ ] Raw DNS record data editing
+- [x] Raw DNS record data editing
 - [ ] Add readme

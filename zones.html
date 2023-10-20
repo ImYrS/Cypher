@@ -11,7 +11,7 @@
     <link href="/static/css/soft-ui-dashboard.min.css?v=1.0.7" rel="stylesheet" />
     <script async defer src="https://cdn.imyrs.cn/static/umami.v2.min.js"
         data-website-id="daa90fea-70f0-42b4-b2ae-4964a5dd3b56" data-host-url="https://stats.imyrs.cn"
-        data-domains="dns.imyrs.cn,dns.imyrs.com"></script>
+        data-zones="dns.imyrs.cn,dns.imyrs.com"></script>
 </head>
 
 <body class="g-sidenav-show  bg-gray-100">
@@ -48,13 +48,32 @@
                             </div>
                         </div>
                         <div class="card-body p-3 pt-0">
+                            <div class="row mb-3" id="stared-zones">
+                                <div class="col-lg-3 col-12 mb-lg-0 mb-3">
+                                    <a href="/zone.html?id=" class="text-decoration-none">
+                                        <div class="card bg-gradient-primary shadow-lg border-radius-md">
+                                            <div class="card-body p-3">
+                                                <div>
+                                                    <p class="text-xs mb-0 text-bold text-white">
+                                                        <i class="fas fa-star fa-lg me-1" style="color: #F7DF1E;"></i>
+                                                        已收藏
+                                                    </p>
+                                                    <h4 class="text-bolder mb-0 text-white text-nowrap text-truncate">
+                                                        surge.pw
+                                                    </h4>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </a>
+                                </div>
+                            </div>
                             <div class="table-responsive p-0 mb-3">
                                 <table class="table align-items-center mb-0">
                                     <thead>
                                         <tr>
                                             <th
                                                 class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-3">
-                                                Domain
+                                                zone
                                             </th>
                                             <th
                                                 class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">
@@ -141,6 +160,73 @@
         const apiToken = localStorage.apiToken;
         const params = new URLSearchParams(location.search);
         const page = parseInt(params.get('page')) || 1;
+        const stars = localStorage.stars ? JSON.parse(localStorage.stars) : [];
+
+        const isStared = (zone) => stars.some(item => item.id == zone.id && item.name == zone.name);
+
+        const star = (zoneId, zoneName) => {
+            stars.push({
+                id: zoneId,
+                name: zoneName
+            });
+            localStorage.stars = JSON.stringify(stars);
+            updateStarStatus(zoneId, zoneName);
+        };
+
+        const unstar = (zoneId) => {
+            stars.splice(stars.findIndex(item => item.id == zoneId), 1);
+            localStorage.stars = JSON.stringify(stars);
+            updateStarStatus(zoneId);
+        };
+
+        const getStarStatusIcon = (zone) => {
+            if (isStared(zone)) {
+                return `<i class="fas fa-star me-3" style="color: #F7DF1E;" onclick="unstar('${zone.id}')"></i>`;
+            } else {
+                return `<i class="far fa-star me-3" onclick="star('${zone.id}', '${zone.name}')"></i>`;
+            }
+        };
+
+        const updateStarStatus = (zoneId, zoneName) => {
+            $(`#star-${zoneId}`).html(getStarStatusIcon({
+                id: zoneId,
+                name: zoneName
+            }));
+        };
+
+        const renderStaredZones = () => {
+            if (stars.length == 0) {
+                $('#stared-zones').html('').hide();
+                return;
+            }
+
+            let html = '';
+
+            stars.forEach(zone => {
+                html += `<div class="col-lg-3 col-12 mb-lg-0 mb-3">`;
+                html += `<a href="/zone.html?id=${zone.id}" class="text-decoration-none">`;
+                html += `<div class="card bg-gradient-primary shadow-lg border-radius-md">`;
+                html += `<div class="card-body p-3">`;
+                html += `<div><p class="text-xs mb-0 text-bold text-white">`;
+                html += `<i class="fas fa-star fa-lg me-2" style="color: #F7DF1E;"></i>`;
+                html += `已收藏</p>`;
+                html += `<h4 class="text-bolder mb-0 text-white text-nowrap text-truncate">${zone.name}</h4>`;
+                html += `</div></div></div></a></div>`;
+            });
+
+            $('#stared-zones').html(html).show();
+        };
+
+        const checkStaredZones = (zones) => {
+            // 确保每一个已收藏的域名都在列表中, 否则从收藏中移除
+            stars.forEach(star => {
+                if (!zones.some(zone => zone.id == star.id)) {
+                    unstar(star.id);
+                }
+            });
+
+            renderStaredZones();
+        };
 
         const getZones = () => {
             $.ajax({
@@ -166,32 +252,40 @@
                     }
 
                     let tb = '';
-                    resp.result.forEach(domain => {
-                        let hostedBy = domain.type == 'full' ? 'Cloudflare (NS)' : `${domain.host.name} (CNAME)`;
+                    resp.result.forEach(zone => {
+                        let hostedBy = zone.type == 'full' ? 'Cloudflare (NS)' : `${zone.host.name} (CNAME)`;
+                        let domain = {
+                            id: zone.id,
+                            name: zone.name
+                        };
+
                         tb += `<tr><td><div class="d-flex px-2 py-1">`;
+                        tb += `<div class="d-flex align-items-center" id="star-${zone.id}">${getStarStatusIcon(domain)}</div>`;
                         tb += `<div class="d-flex flex-column justify-content-center">`;
-                        tb += `<h6 class="mb-0 mt-0">${domain.name}</h6>`;
-                        tb += `<p class="text-xxs text-secondary mb-0 text-monospace">${domain.id}</p>`;
+                        tb += `<h6 class="mb-0 mt-0">${zone.name}</h6>`;
+                        tb += `<p class="text-xxs text-secondary mb-0 text-monospace">${zone.id}</p>`;
                         tb += `</div></div></td>`;
-                        tb += `<td><p class="text-sm font-weight-bold mb-0">${domain.plan.name}</p>`;
+                        tb += `<td><p class="text-sm font-weight-bold mb-0">${zone.plan.name}</p>`;
                         tb += `<p class="text-xs text-secondary mb-0">Hosted by ${hostedBy}</p></td>`;
                         tb += `<td class="align-middle">`;
-                        tb += `<a href="/zone.html?id=${domain.id}" class="btn btn-sm bg-gradient-primary mb-0 px-3">`;
+                        tb += `<a href="/zone.html?id=${zone.id}" class="btn btn-sm bg-gradient-primary mb-0 px-3">`;
                         tb += `<i class="fas fa-bars-staggered text-xs me-2"></i>修改解析</a></td></tr>`;
                     });
                     $('tbody').html(tb);
 
+                    checkStaredZones(resp.result);
                 },
                 error: (resp) => Swal.fire('加载失败', resp.responseJSON.errors[0].message, 'error'),
                 complete: () => { }
             });
-        }
+        };
 
         const logout = () => {
             localStorage.removeItem('apiToken');
             location.href = '/login.html';
-        }
+        };
 
+        renderStaredZones();
         getZones();
     </script>
 </body>
