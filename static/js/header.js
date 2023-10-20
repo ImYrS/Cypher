@@ -5,7 +5,7 @@ const initPath = () => {
 
   if (path === "/login" && apiToken && accountId) {
     location.href = "/zones.html";
-  } else if ((path === "/zones" || path === "/zone") && (!apiToken || !accountId)) {
+  } else if ((path === "/zones" || path === "/zone") && (!apiToken && !accountId)) {
     location.href = "/login.html";
   }
 };
