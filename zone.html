@@ -244,6 +244,7 @@
                                             由 Cloudflare 代理流量 (CDN)
                                         </label>
                                     </div>
+                                    <div class="text-xs" id="edit-info"></div>
                                 </div>
                                 <div id="edit-raw" style="display: none;">
                                     <div class="form-group">
@@ -387,9 +388,15 @@
                 // 额外处理
                 this.host = (this.name.replace(this.zone_name, '').replace(/\.$/, '') || '@');
                 this.isWorker = this.meta.origin_worker_id ? true : false;
-                this.editable = true;
+                this.isSaaS = this.meta.fallback_origin ? true : false;
+                this.canEdit = true;
+                this.canDelete = true;
 
-                if (this.isWorker) this.editable = false;
+                if (this.isWorker) {
+                    this.canEdit = false;
+                    this.canDelete = false;
+                }
+                if (this.isSaaS) this.canDelete = false;
             };
         };
 
@@ -417,6 +424,9 @@
                         let typeClass = record.isWorker ? 'text-gradient text-success' : '';
                         let proxyIconClass = record.proxied ? 'text-gradient text-warning' : 'text-secondary';
                         let proxyBtn = record.proxied ? `<button class="btn btn-sm bg-gradient-info mb-0 px-3 mx-1" data-clipboard data-clipboard-text="${record.name}.cdn.cloudflare.net"><i class="fas fa-copy text-xxs me-2"></i>CNAME</button>` : '';
+                        let moreInfo = '';
+                        if (record.isSaaS) moreInfo += `<span class="badge text-xxs bg-gradient-danger text-white"><i class="fa-solid fa-lock me-1"></i> SaaS 回源地址</span>`;
+                        moreInfo = `<div class="d-flex flex-column justify-content-center ms-3">${moreInfo}</div>`;
 
                         let tr = '';
                         tr += `<tr><td><div class="d-flex px-2">`;
@@ -425,13 +435,13 @@
                         tr += `${record.host}<span class="text-secondary me-2">.${record.zone_name}</span>`;
                         tr += `<span class="text-sm text-monospace text-primary text-gradient">[TTL ${record.ttl}]</span>`;
                         tr += `<p class="text-xxs text-secondary mb-0 text-monospace">${new Date(record.modified_on).toLocaleString()}</p>`;
-                        tr += `</div></div></td>`;
+                        tr += `</div>${moreInfo}</div></td>`;
                         tr += `<td><div class="d-flex"><div class="d-flex pt-2"><span class="text-sm text-bold mb-0 text-monospace" id="content-${record.id}">${record.content}</span></div>`;
                         tr += `<div><i class="fa-brands fa-cloudflare fa-2x ms-2 ${proxyIconClass}" title="CDN ${record.proxied ? '已开启' : '未开启'}"></i></div>`;
                         tr += `</td><td class="text-center">${proxyBtn}`;
-                        tr += `<button class="btn btn-sm btn-dark mb-0 px-3 mx-1" onclick="showEditModal('${record.id}')" style="${record.editable ? '' : 'display: none;'}">`;
+                        tr += `<button class="btn btn-sm btn-dark mb-0 px-3 mx-1" onclick="showEditModal('${record.id}')" style="${record.canEdit ? '' : 'display: none;'}">`;
                         tr += `<i class="fas fa-pen text-xxs me-2"></i>编辑</button>`;
-                        tr += `<button class="btn btn-sm btn-danger mb-0 px-3 mx-1" onclick="deleteRecord('${record.id}', '${type}', '${record.name}')" style="${record.editable ? '' : 'display: none;'}">`;
+                        tr += `<button class="btn btn-sm btn-danger mb-0 px-3 mx-1" onclick="deleteRecord('${record.id}', '${type}', '${record.name}')" style="${(record.canDelete) ? '' : 'display: none;'}">`;
                         tr += `<i class="fas fa-trash text-xxs me-2"></i>删除</button>`;
                         tr += `</td></tr>`;
                         tb.append(tr);
@@ -483,13 +493,23 @@
                 dataType: 'json',
                 success: (resp) => {
                     let record = new Record(resp.result);
+                    let type = $('#edit-type');
+                    let host = $('#edit-host');
+                    let proxied = $('#edit-proxied');
+                    let info = $('#edit-info');
 
                     $('[data-edit]').attr('disabled', false);
-                    $('#edit-type').val(record.type).attr('disabled', true);
-                    $('#edit-host').val(resp.result.name.replace(`${resp.result.zone_name}`, '').replace(/\.$/, '') || '@');
+                    type.val(record.type).attr('disabled', true);
+                    host.val(resp.result.name.replace(`${resp.result.zone_name}`, '').replace(/\.$/, '') || '@');
+                    proxied.prop('checked', resp.result.proxied).attr('disabled', !resp.result.proxiable);
                     $('#edit-content').val(resp.result.content);
-                    $('#edit-proxied').prop('checked', resp.result.proxied).attr('disabled', !resp.result.proxiable);
                     proxyFlagChanged(resp.result.ttl);
+
+                    if (record.isSaaS) {
+                        host.attr('disabled', true);
+                        proxied.attr('disabled', true);
+                        info.html('<i class="fa-solid fa-lock me-1"></i> SaaS 回源地址无法更改 Host 和代理状态.').addClass('text-danger');
+                    }
                 },
                 error: (resp) => Swal.fire('加载失败', resp.responseJSON.errors[0].message, 'error'),
                 complete: () => { }
@@ -508,6 +528,7 @@
             $('[data-edit]').attr('disabled', true).val('').removeClass('is-invalid').removeClass('is-valid');
             $('#edit-record').modal('show');
             $('#edit-mode').prop('checked', false);
+            $('#edit-info').html('').removeClass('text-danger');
             switchMode();
             getRecord(id);
         };
