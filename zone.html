@@ -302,16 +302,11 @@
             setTimeout(() => icon.removeClass('fa-circle-exclamation').addClass('fa-copy'), 1000);
         });
 
-        $('[data-edit]').change(() => {
-            let data = {
-                type: $('#edit-type').val(),
-                name: $('#edit-host').val(),
-                ttl: $('#edit-ttl').val(),
-                content: $('#edit-content').val(),
-                proxied: $('#edit-proxied').is(':checked')
-            };
+        const rawMode = $('#edit-mode');
 
-            $('#edit-json').val(JSON.stringify(data, null, 2));
+        $('[data-edit]').change(() => {
+            if (rawMode.is(':checked')) return;
+            syncRawJSON();
         })
 
         const initQuery = () => {
@@ -504,6 +499,7 @@
                     proxied.prop('checked', resp.result.proxied).attr('disabled', !resp.result.proxiable);
                     $('#edit-content').val(resp.result.content);
                     proxyFlagChanged(resp.result.ttl);
+                    syncRawJSON();
 
                     if (record.isSaaS) {
                         host.attr('disabled', true);
@@ -543,6 +539,7 @@
             $('#edit-mode').prop('checked', false);
             switchMode();
             proxyFlagChanged();
+            syncRawJSON();
         };
 
         const checkField = (ele) => {
@@ -559,10 +556,9 @@
         const editRecord = (id = '') => {
             if (event) event.preventDefault();
 
-            let rawMode = $('#edit-mode').is(':checked');
             let data;
 
-            if (!rawMode) {
+            if (!rawMode.is(':checked')) {
                 let type = $('#edit-type');
                 let host = $('#edit-host');
                 let ttl = $('#edit-ttl');
@@ -602,8 +598,7 @@
         };
 
         const switchMode = () => {
-            let mode = $('#edit-mode');
-            if (mode.is(':checked')) {
+            if (rawMode.is(':checked')) {
                 $('#edit-ui').hide();
                 $('#edit-raw').show();
             } else {
@@ -611,6 +606,20 @@
                 $('#edit-raw').hide();
             }
         };
+
+        const syncRawJSON = () => {
+            $('#edit-json').val(JSON.stringify(
+                {
+                    type: $('#edit-type').val(),
+                    name: $('#edit-host').val(),
+                    ttl: $('#edit-ttl').val(),
+                    content: $('#edit-content').val(),
+                    proxied: $('#edit-proxied').is(':checked')
+                },
+                null,
+                2
+            ));
+        }
 
         const getZones = () => {
             let zone = $('#page-zone');
