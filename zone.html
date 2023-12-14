@@ -325,12 +325,12 @@
             if (!zoneId) location.href = '/zones.html';
         };
 
-        const updateQuery = (key, value) => {
+        const updateQuery = (key, value, doNotReload = false) => {
             let query = new URLSearchParams(window.location.search);
             query.set(key, value);
             history.replaceState(null, null, `?${query.toString()}`);
             localStorage.setItem(key, value);
-            reload();
+            if (!doNotReload) reload();
         };
 
         const switchZone = (zoneInfo) => {
@@ -338,6 +338,7 @@
             let zoneId = zoneInfo[0];
             let zoneName = zoneInfo[1];
             $('#domain').text(zoneName);
+            updateQuery('page', 1, doNotReload = true);
             updateQuery('id', zoneId);
         };
 
