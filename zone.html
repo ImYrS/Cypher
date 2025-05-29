@@ -337,7 +337,7 @@
             zoneInfo = zoneInfo.split('|');
             let zoneId = zoneInfo[0];
             let zoneName = zoneInfo[1];
-            $('#domain').text(zoneName);
+            $('#domain').text(zoneName.toUpperCase());
             updateQuery('page', 1, doNotReload = true);
             updateQuery('id', zoneId);
         };
@@ -428,7 +428,7 @@
                         tr += `<tr><td><div class="d-flex px-2">`;
                         tr += `<div class="d-flex flex-column justify-content-center">`;
                         tr += `<h6 class="mb-0 mt-0"><span class="text-bolder me-2 ${typeClass}">${type}</span>`;
-                        tr += `${record.host}<span class="text-secondary me-2">.${record.zone_name}</span>`;
+                        tr += `<span class="me-2">${record.host}</span>`;
                         tr += `<span class="text-sm text-monospace text-primary text-gradient">[TTL ${record.ttl}]</span>`;
                         tr += `<p class="text-xxs text-secondary mb-0 text-monospace">${new Date(record.modified_on).toLocaleString()}</p>`;
                         tr += `</div>${moreInfo}</div></td>`;
@@ -640,7 +640,7 @@
                     resp.result.forEach(item => {
                         zone.append(`<option value="${item.id}|${item.name}">${item.name}</option>`);
                         if (item.id === zoneId) {
-                            $('#domain').text(item.name);
+                            $('#domain').text(item.name.toUpperCase());
                             zone.val(`${item.id}|${item.name}`).attr('disabled', false);
                         }
                     });
