@@ -587,6 +587,7 @@
                 method: id ? 'put' : 'post',
                 headers: { 'Authorization': `Bearer ${apiToken}` },
                 dataType: 'json',
+                contentType: 'application/json',
                 data: data,
                 success: (resp) => {
                     $('#edit-record').modal('hide');
