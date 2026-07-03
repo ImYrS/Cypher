@@ -27,7 +27,7 @@
                                 <p class="mb-0">一个简单优雅的 Cloudflare DNS 面板</p>
                             </div>
                             <div class="card-body">
-                                <form>
+                                <form id="login-form">
                                     <label>API Token</label>
                                     <div for="api-token">
                                         <input type="password" class="form-control" id="api-token" autofocus
@@ -46,7 +46,7 @@
                                     <div class="text-center mt-4">
                                         <button
                                             class="btn bg-gradient-primary w-100 mb-0 position-relative icon-move-right"
-                                            onclick="login()" type="submit" id="btn">
+                                            type="submit" id="btn">
                                             <span class="position-absolute start-0 top-50 translate-middle-y ms-3">
                                                 <i class="fab fa-cloudflare text-lg"></i>
                                             </span>
@@ -112,6 +112,7 @@
         const apiToken = $('#api-token');
         const apiEndpoint = $('#api-endpoint');
         const btn = $('#btn');
+        const loginButtonHtml = '<span class="position-absolute start-0 top-50 translate-middle-y ms-3"><i class="fab fa-cloudflare text-lg"></i></span><span>登陆</span>';
 
         const init = () => {
             let endpoint = localStorage.endpoint;
@@ -130,11 +131,24 @@
             return true;
         }
 
-        const login = () => {
-            if (event) event.preventDefault();
+        const getErrorMessage = (resp) => {
+            let errors = resp && resp.responseJSON && resp.responseJSON.errors;
+            return (errors && errors[0] && errors[0].message) || '请求失败，请稍后重试';
+        };
+
+        const setLoginLoading = (loading) => {
+            if (loading) btn.attr('disabled', true).html('<span class="spinner-border spinner-border-sm"></span>');
+            else btn.attr('disabled', false).html(loginButtonHtml);
+        };
+
+        const login = (event) => {
+            event.preventDefault();
+            apiToken.val(apiToken.val().trim());
+            apiEndpoint.val(apiEndpoint.val().trim().replace(/\/$/, ''));
+
             if (!checkField(apiToken) || !checkField(apiEndpoint)) return;
 
-            btn.attr('disabled', true).html('<span class="spinner-border spinner-border-sm"></span>');
+            setLoginLoading(true);
 
             $.ajax({
                 type: 'GET',
@@ -150,8 +164,8 @@
                     getAccountId();
                 },
                 error: (resp) => {
-                    Swal.fire('登陆失败', resp.responseJSON.errors[0].message, 'error');
-                    btn.attr('disabled', false).html('<span class="position-absolute start-0 top-50 translate-middle-y ms-3"><i class="fab fa-cloudflare text-lg"></i></span><span>登陆</span>');
+                    Swal.fire('登陆失败', getErrorMessage(resp), 'error');
+                    setLoginLoading(false);
                 }
             });
         };
@@ -165,6 +179,11 @@
                 },
                 dataType: 'json',
                 success: (resp) => {
+                    if (!resp.result || resp.result.length === 0) {
+                        Swal.fire('登陆失败', '未找到可用的 Cloudflare 账号', 'error');
+                        return;
+                    }
+
                     localStorage.accountId = resp.result[0].id;
 
                     setTimeout(() => location.href = '/zones.html', 3000);
@@ -172,12 +191,13 @@
                         location.href = '/zones.html';
                     });
                 },
-                error: (resp) => Swal.fire('登陆失败', resp.responseJSON.errors[0].message, 'error'),
+                error: (resp) => Swal.fire('登陆失败', getErrorMessage(resp), 'error'),
                 complete: () => {
-                    btn.attr('disabled', false).html('<span class="position-absolute start-0 top-50 translate-middle-y ms-3"><i class="fab fa-cloudflare text-lg"></i></span><span>登陆</span>');
+                    setLoginLoading(false);
                 }
             });
         };
+        $('#login-form').on('submit', login);
         init();
     </script>
 </body>
