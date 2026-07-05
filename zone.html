@@ -290,6 +290,20 @@
         const accountId = localStorage.accountId;
         let params, zoneId, page, pageSize, orderBy, direction;
 
+        const escapeHtml = (value) => {
+            return $('<div>').text(value == null ? '' : String(value)).html();
+        };
+
+        const escapeAttr = escapeHtml;
+
+        const escapeJsString = (value) => {
+            const escaped = (value == null ? '' : String(value))
+                .replace(/\\/g, '\\\\')
+                .replace(/'/g, "\\'")
+                .replace(/\r?\n/g, ' ');
+            return escapeAttr(escaped);
+        };
+
         const clipboard = new ClipboardJS('[data-clipboard]');
         clipboard.on('success', (e) => {
             let icon = $(e.trigger).find('i');
@@ -419,7 +433,7 @@
                         let type = record.isWorker ? 'Worker' : record.type;
                         let typeClass = record.isWorker ? 'text-gradient text-success' : '';
                         let proxyIconClass = record.proxied ? 'text-gradient text-warning' : 'text-secondary';
-                        let proxyBtn = record.proxied ? `<button class="btn btn-sm bg-gradient-info mb-0 px-3 mx-1" data-clipboard data-clipboard-text="${record.name}.cdn.cloudflare.net"><i class="fas fa-copy text-xxs me-2"></i>CNAME</button>` : '';
+                        let proxyBtn = record.proxied ? `<button class="btn btn-sm bg-gradient-info mb-0 px-3 mx-1" data-clipboard data-clipboard-text="${escapeAttr(record.name)}.cdn.cloudflare.net"><i class="fas fa-copy text-xxs me-2"></i>CNAME</button>` : '';
                         let moreInfo = '';
                         if (record.isSaaS) moreInfo += `<span class="badge text-xxs bg-gradient-danger text-white"><i class="fa-solid fa-lock me-1"></i> SaaS 回源地址</span>`;
                         moreInfo = `<div class="d-flex flex-column justify-content-center ms-3">${moreInfo}</div>`;
@@ -427,17 +441,17 @@
                         let tr = '';
                         tr += `<tr><td><div class="d-flex px-2">`;
                         tr += `<div class="d-flex flex-column justify-content-center">`;
-                        tr += `<h6 class="mb-0 mt-0"><span class="text-bolder me-2 ${typeClass}">${type}</span>`;
-                        tr += `<span class="me-2">${record.host}</span>`;
-                        tr += `<span class="text-sm text-monospace text-primary text-gradient">[TTL ${record.ttl}]</span>`;
+                        tr += `<h6 class="mb-0 mt-0"><span class="text-bolder me-2 ${typeClass}">${escapeHtml(type)}</span>`;
+                        tr += `<span class="me-2">${escapeHtml(record.host)}</span>`;
+                        tr += `<span class="text-sm text-monospace text-primary text-gradient">[TTL ${escapeHtml(record.ttl)}]</span>`;
                         tr += `<p class="text-xxs text-secondary mb-0 text-monospace">${new Date(record.modified_on).toLocaleString()}</p>`;
                         tr += `</div>${moreInfo}</div></td>`;
-                        tr += `<td><div class="d-flex"><div class="d-flex pt-2"><span class="text-sm text-bold mb-0 text-monospace" id="content-${record.id}">${record.content}</span></div>`;
+                        tr += `<td><div class="d-flex"><div class="d-flex pt-2"><span class="text-sm text-bold mb-0 text-monospace" id="content-${escapeAttr(record.id)}">${escapeHtml(record.content)}</span></div>`;
                         tr += `<div><i class="fa-brands fa-cloudflare fa-2x ms-2 ${proxyIconClass}" title="CDN ${record.proxied ? '已开启' : '未开启'}"></i></div>`;
                         tr += `</td><td class="text-center">${proxyBtn}`;
-                        tr += `<button class="btn btn-sm btn-dark mb-0 px-3 mx-1" onclick="showEditModal('${record.id}')" style="${record.canEdit ? '' : 'display: none;'}">`;
+                        tr += `<button class="btn btn-sm btn-dark mb-0 px-3 mx-1" onclick="showEditModal('${escapeJsString(record.id)}')" style="${record.canEdit ? '' : 'display: none;'}">`;
                         tr += `<i class="fas fa-pen text-xxs me-2"></i>编辑</button>`;
-                        tr += `<button class="btn btn-sm btn-danger mb-0 px-3 mx-1" onclick="deleteRecord('${record.id}', '${type}', '${record.name}')" style="${(record.canDelete) ? '' : 'display: none;'}">`;
+                        tr += `<button class="btn btn-sm btn-danger mb-0 px-3 mx-1" onclick="deleteRecord('${escapeJsString(record.id)}', '${escapeJsString(type)}', '${escapeJsString(record.name)}')" style="${(record.canDelete) ? '' : 'display: none;'}">`;
                         tr += `<i class="fas fa-trash text-xxs me-2"></i>删除</button>`;
                         tr += `</td></tr>`;
                         tb.append(tr);
@@ -639,7 +653,7 @@
                 success: (resp) => {
                     zone.html('');
                     resp.result.forEach(item => {
-                        zone.append(`<option value="${item.id}|${item.name}">${item.name}</option>`);
+                        zone.append(`<option value="${escapeAttr(`${item.id}|${item.name}`)}">${escapeHtml(item.name)}</option>`);
                         if (item.id === zoneId) {
                             $('#domain').text(item.name.toUpperCase());
                             zone.val(`${item.id}|${item.name}`).attr('disabled', false);
