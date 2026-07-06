@@ -8,6 +8,16 @@ const read = (path) => readFileSync(join(root, path), 'utf8');
 const zoneHtml = read('zone.html');
 const zonesHtml = read('zones.html');
 const loginHtml = read('login.html');
+const indexHtml = read('index.html');
+const readme = read('README.md');
+const gitignore = read('.gitignore');
+
+const htmlFiles = {
+  'index.html': indexHtml,
+  'login.html': loginHtml,
+  'zone.html': zoneHtml,
+  'zones.html': zonesHtml,
+};
 
 assert.match(
   zoneHtml,
@@ -97,5 +107,42 @@ assert.match(
   /escapeHtml\(item\.name\)/,
   'records page should escape zone option text before rendering'
 );
+
+for (const [file, html] of Object.entries(htmlFiles)) {
+  for (const link of html.match(/<a\b[^>]*target="_blank"[^>]*>/g) || []) {
+    assert.match(
+      link,
+      /rel="noopener noreferrer"/,
+      `${file} external link should include rel="noopener noreferrer": ${link}`
+    );
+  }
+}
+
+assert.doesNotMatch(
+  zonesHtml,
+  /data-zones=/,
+  'zones page Umami script should not use data-zones'
+);
+
+assert.match(
+  zonesHtml,
+  /data-domains="dns\.imyrs\.cn,dns\.imyrs\.com"/,
+  'zones page Umami script should use data-domains'
+);
+
+assert.match(
+  gitignore,
+  /^\.DS_Store$/m,
+  '.gitignore should ignore .DS_Store with the correct case'
+);
+
+assert.doesNotMatch(
+  readme,
+  /Add readme/i,
+  'README should not contain the old todo placeholder'
+);
+
+assert.match(readme, /## Usage/, 'README should document usage');
+assert.match(readme, /## Token permissions/, 'README should document token permissions');
 
 console.log('static checks passed');
